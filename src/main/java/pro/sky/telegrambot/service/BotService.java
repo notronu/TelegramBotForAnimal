@@ -3,24 +3,16 @@ package pro.sky.telegrambot.service;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.Keyboard;
-import com.pengrad.telegrambot.model.request.ParseMode;
-import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
-import com.pengrad.telegrambot.response.SendResponse;
+import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import com.pengrad.telegrambot.request.SendMessage;
-
-
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pro.sky.telegrambot.model.AnimalType;
-
-
 import pro.sky.telegrambot.repository.ShelterRepository;
 import pro.sky.telegrambot.util.LocationUtil;
-
-import java.util.Map;
-import java.util.Set;
+import java.util.Map;;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -125,20 +117,14 @@ public class BotService {
         callVolunteer(chatId, text);
     }
 
-
-
-
     private void informationAboutShelter(long chatId)  {
         SendMessage message = new SendMessage(chatId, "Завести питомца — это очень серьезный шаг и здесь необходимо всё обдумать наперед!\n" +
                 "Мы приют животных из Астаны, и в данном разделе меню, ты можешь найти необходимую информацию о нас.").replyMarkup(new ReplyKeyboardMarkup(
                 new String[]{"Информация о приюте для кошек", "Информация о приюте для собак"},
                 new String[]{"Главное меню"}
         ));
-
         telegramBot.execute(message);
-
     }
-
 
     private void safetyEquipment(long chatId, String text) {
         String safetyRules = "**Правила безопасности на территории приюта:**\n" +
@@ -152,13 +138,8 @@ public class BotService {
                 "* Запрещается курить на территории приюта.\n" +
                 "* Дети до 14 лет должны находиться под присмотром взрослых.";
         SendMessage message = new SendMessage(chatId, safetyRules);
-
         telegramBot.execute(message);
     }
-
-
-
-
 
     private void sendMainMenu(long chatId) {
         telegramBot.execute(new SendMessage(chatId, "Выберите опцию:")
