@@ -91,6 +91,7 @@ public class BotService {
                     sendMainMenu(chatId);
                     break;
             }
+
             if (!understood) {
                 var count = incorrectCounts.getOrDefault(chatId, 0);
                 if (count < 1) {
