@@ -28,9 +28,9 @@ public class BotService {
     private final ShelterRepository shelterRepository;
     private final Keyboard mainMenuKeyboard;
     private static final Map<Long, Integer> incorrectCounts = new ConcurrentHashMap<>();
-
-
     private static final Logger logger = LogManager.getLogger(BotService.class);
+
+
     public BotService(TelegramBot telegramBot, ShelterRepository shelterRepository) {
         this.telegramBot = telegramBot;
         this.shelterRepository = shelterRepository;
@@ -41,7 +41,6 @@ public class BotService {
 
         );
     }
-
     public void handleUpdate(Update update) {
         if (update.message() != null && update.message().text() != null) {
             String text = update.message().text();
