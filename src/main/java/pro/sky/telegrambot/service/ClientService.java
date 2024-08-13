@@ -2,6 +2,8 @@ package pro.sky.telegrambot.service;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.model.ClientSession;
 import pro.sky.telegrambot.model.VolunteerSession;
@@ -10,6 +12,8 @@ import java.util.Map;
 
 @Service
 public class ClientService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ClientService.class);
 
     private final TelegramBot telegramBot;
     private final ChatService chatService;
@@ -29,6 +33,7 @@ public class ClientService {
             ClientSession clientSession = new ClientSession(clientChatId);
             clientSession.setClientName("Клиент"); // Замените на фактическое имя клиента
             clientSession.setClientQuestion("Вопрос клиента"); // Замените на фактический вопрос клиента
+            logger.info("Client {} is requesting a volunteer", clientChatId);
             chatService.notifyVolunteer(clientSession, volunteerSessions);
         }
     }

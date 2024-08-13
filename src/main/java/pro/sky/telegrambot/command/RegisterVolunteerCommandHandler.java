@@ -9,5 +9,6 @@ public class RegisterVolunteerCommandHandler implements CommandHandler {
     @Override
     public void handle(BotService botService, long chatId) {
         botService.registerVolunteer(chatId);
+        botService.sendVolunteerMenu(chatId);
     }
 }

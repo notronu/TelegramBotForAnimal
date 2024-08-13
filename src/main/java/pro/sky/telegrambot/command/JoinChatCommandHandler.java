@@ -3,7 +3,7 @@ package pro.sky.telegrambot.command;
 import pro.sky.telegrambot.service.BotService;
 
 /**
- * Обработчик команды "Присоедениться к беседе с клиентом".
+ * Обработчик команды "Присоединиться к беседе с клиентом".
  */
 public class JoinChatCommandHandler implements CommandHandler {
     @Override

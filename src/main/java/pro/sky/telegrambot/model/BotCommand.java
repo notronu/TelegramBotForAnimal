@@ -21,10 +21,11 @@ public enum BotCommand {
     INSTRUCTION_SETUP_HOME("Инструкция по обустройству дома", new InstructionSetupHomeCommandHandler()),
     RECOMMEND_CYNOLOGISTS("Рекомендации по проверенным кинологам", new RecommendCynologistsCommandHandler()),
     GET_FILE("Получить файл", new GetFileCommandHandler()),
-    JOIN_CHAT("Присоедениться к беседе с клиентом", new JoinChatCommandHandler()),
-    LEAVE_CHAT("Попрощаться с клиентом", new LeaveChatCommandHandler()),
+    JOIN_CHAT("Присоединиться к беседе с клиентом", new JoinChatCommandHandler()),
+    END_CHAT("Прекратить беседу с клиентом", new EndChatCommandHandler()),
     REGISTER_VOLUNTEER("Регистрация волонтера", new RegisterVolunteerCommandHandler()),
     VOLUNTEER_ACTIVE("Активен", new VolunteerActiveCommandHandler()),
+    VOLUNTEER_INACTIVE("Неактивен", new VolunteerInactiveCommandHandler()),
     DEFAULT("", new DefaultCommandHandler());
 
     private final String command;

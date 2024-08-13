@@ -2,6 +2,8 @@ package pro.sky.telegrambot.service;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.model.VolunteerSession;
 
@@ -18,6 +20,8 @@ import java.util.Scanner;
 @Service
 public class VolunteerService {
 
+    private static final Logger logger = LoggerFactory.getLogger(VolunteerService.class);
+
     private final TelegramBot telegramBot;
     private final String VOLUNTEER_FILE_PATH = "volunteer_chat_id.txt";
     private final Map<Long, VolunteerSession> volunteerSessions = new HashMap<>();
@@ -32,6 +36,7 @@ public class VolunteerService {
             volunteerSessions.put(chatId, new VolunteerSession(chatId));
             telegramBot.execute(new SendMessage(chatId, "Вы успешно зарегистрированы как волонтер."));
         } catch (IOException e) {
+            logger.error("Error registering volunteer with chatId: " + chatId, e);
             telegramBot.execute(new SendMessage(chatId, "Произошла ошибка при регистрации волонтера."));
         }
     }
@@ -47,7 +52,7 @@ public class VolunteerService {
                 }
             }
         } catch (IOException e) {
-            // Логирование ошибки
+            logger.error("Error reading volunteer chat ID from file.", e);
         }
         return 0; // Возвращает 0, если chat ID не найден
     }

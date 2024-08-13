@@ -9,12 +9,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.model.BotCommand;
 import pro.sky.telegrambot.repository.ShelterRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Сервис для обработки логики бота.
  */
 @Service
 public class BotService {
+
+    private static final Logger logger = LoggerFactory.getLogger(BotService.class);
 
     private final TelegramBot telegramBot;
     private final ShelterRepository shelterRepository;
@@ -24,6 +28,8 @@ public class BotService {
     private final ClientService clientService;
     private final Keyboard mainMenuKeyboard;
     private final Keyboard instructionMenuKeyboard;
+    private final Keyboard volunteerMenuKeyboard;
+    private final Keyboard chatMenuKeyboard;
 
     @Autowired
     public BotService(TelegramBot telegramBot, ShelterRepository shelterRepository,
@@ -43,6 +49,13 @@ public class BotService {
                 new String[]{"Инструкция по знакомству с животным", "Инструкция как взять"},
                 new String[]{"Инструкция по обустройству дома", "Рекомендации по проверенным кинологам"},
                 new String[]{"Позвать волонтера", "Главное меню"}
+        );
+        this.volunteerMenuKeyboard = new ReplyKeyboardMarkup(
+                new String[]{"Активен", "Неактивен"},
+                new String[]{"Главное меню"}
+        );
+        this.chatMenuKeyboard = new ReplyKeyboardMarkup(
+                new String[]{"Прекратить беседу с клиентом"}
         );
     }
 
@@ -134,10 +147,16 @@ public class BotService {
     }
 
     public void joinChat(long chatId) {
-        telegramBot.execute(new SendMessage(chatId, "Волонтер присоединился к беседе.")
-                .replyMarkup(new ReplyKeyboardMarkup(
-                        new String[]{"Попрощаться с клиентом"}
-                )));
+        long clientChatId = chatService.getClientChatIdForVolunteer(chatId);
+        if (clientChatId != 0) {
+            logger.info("Volunteer {} joining chat with client {}", chatId, clientChatId);
+            telegramBot.execute(new SendMessage(clientChatId, "Волонтер присоединился к беседе."));
+            telegramBot.execute(new SendMessage(chatId, "Вы присоединились к беседе с клиентом.").replyMarkup(chatMenuKeyboard));
+            chatService.startChat(clientChatId, chatId);
+        } else {
+            logger.warn("No client found for volunteer {}", chatId);
+            telegramBot.execute(new SendMessage(chatId, "Не удалось найти клиента для подключения."));
+        }
     }
 
     public void leaveChat(long chatId) {
@@ -146,9 +165,23 @@ public class BotService {
 
     public void registerVolunteer(long chatId) {
         volunteerService.registerVolunteer(chatId);
+        sendVolunteerMenu(chatId);
     }
 
     public void setVolunteerActive(long chatId, boolean active) {
         volunteerService.setVolunteerActive(chatId, active);
+    }
+
+    public void sendVolunteerMenu(long chatId) {
+        telegramBot.execute(new SendMessage(chatId, "Выберите статус:").replyMarkup(volunteerMenuKeyboard));
+    }
+
+    public void endChat(long chatId) {
+        long clientChatId = chatService.getClientChatIdForVolunteer(chatId);
+        chatService.endChat(chatId);
+        if (clientChatId != 0) {
+            telegramBot.execute(new SendMessage(clientChatId, "Волонтер прекратил беседу с вами."));
+        }
+        telegramBot.execute(new SendMessage(chatId, "Вы прекратили беседу с клиентом."));
     }
 }
