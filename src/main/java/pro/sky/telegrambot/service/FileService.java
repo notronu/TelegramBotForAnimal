@@ -19,6 +19,11 @@ public class FileService {
         this.telegramBot = telegramBot;
     }
 
+    /**
+     * Отправляет файл в чат.
+     * @param chatId идентификатор чата
+     * @param filePath путь к файлу
+     */
     public void sendFile(long chatId, String filePath) {
         File file = new File(filePath);
         if (file.exists()) {

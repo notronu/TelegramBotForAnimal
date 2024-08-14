@@ -31,10 +31,20 @@ public class ChatService {
         this.volunteerService = volunteerService;
     }
 
+    /**
+     * Проверяет, является ли чат активным.
+     * @param chatId идентификатор чата
+     * @return true, если чат активен, иначе false
+     */
     public boolean isActiveChat(long chatId) {
         return activeChats.containsKey(chatId) || activeChats.containsValue(chatId);
     }
 
+    /**
+     * Направляет сообщение от одного участника чата к другому.
+     * @param senderChatId идентификатор чата отправителя
+     * @param message сообщение
+     */
     public void routeMessage(long senderChatId, Message message) {
         Long recipientChatId = activeChats.get(senderChatId);
         if (recipientChatId == null) {
@@ -50,6 +60,11 @@ public class ChatService {
         }
     }
 
+    /**
+     * Начинает чат между клиентом и волонтером.
+     * @param clientChatId идентификатор чата клиента
+     * @param volunteerChatId идентификатор чата волонтера
+     */
     public void startChat(long clientChatId, long volunteerChatId) {
         logger.info("Starting chat between client {} and volunteer {}", clientChatId, volunteerChatId);
         activeChats.put(clientChatId, volunteerChatId);
@@ -60,6 +75,10 @@ public class ChatService {
         }
     }
 
+    /**
+     * Завершает чат.
+     * @param chatId идентификатор чата
+     */
     public void endChat(long chatId) {
         logger.info("Ending chat for {}", chatId);
         Long volunteerChatId = activeChats.remove(chatId);
@@ -84,6 +103,11 @@ public class ChatService {
         }
     }
 
+    /**
+     * Получает идентификатор чата клиента для указанного волонтера.
+     * @param volunteerChatId идентификатор чата волонтера
+     * @return идентификатор чата клиента
+     */
     public long getClientChatIdForVolunteer(long volunteerChatId) {
         logger.info("Getting client chat ID for volunteer {}", volunteerChatId);
         long clientChatId = activeChats.entrySet().stream()
@@ -95,6 +119,11 @@ public class ChatService {
         return clientChatId;
     }
 
+    /**
+     * Уведомляет волонтера о новом клиенте.
+     * @param clientSession сессия клиента
+     * @param volunteerSessions сессии волонтеров
+     */
     public void notifyVolunteer(ClientSession clientSession, Map<Long, VolunteerSession> volunteerSessions) {
         for (VolunteerSession volunteerSession : volunteerSessions.values()) {
             if (!volunteerSession.isBusy() && volunteerSession.isActive()) {

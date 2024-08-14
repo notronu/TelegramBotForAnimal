@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class BotController {
 
+    /**
+     * Проверка состояния бота.
+     * @return строка, указывающая, что бот работает
+     */
     @GetMapping("/health")
     public String healthCheck() {
         return "Bot is running";

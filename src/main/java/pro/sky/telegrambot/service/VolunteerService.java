@@ -30,6 +30,10 @@ public class VolunteerService {
         this.telegramBot = telegramBot;
     }
 
+    /**
+     * Регистрирует волонтера.
+     * @param chatId идентификатор чата волонтера
+     */
     public void registerVolunteer(long chatId) {
         try (FileWriter writer = new FileWriter(VOLUNTEER_FILE_PATH)) {
             writer.write(String.valueOf(chatId));
@@ -41,6 +45,10 @@ public class VolunteerService {
         }
     }
 
+    /**
+     * Получает идентификатор чата волонтера из файла.
+     * @return идентификатор чата волонтера
+     */
     public long getVolunteerChatId() {
         try {
             File file = new File(VOLUNTEER_FILE_PATH);
@@ -57,6 +65,11 @@ public class VolunteerService {
         return 0; // Возвращает 0, если chat ID не найден
     }
 
+    /**
+     * Устанавливает волонтера активным или неактивным.
+     * @param chatId идентификатор чата волонтера
+     * @param active статус активности
+     */
     public void setVolunteerActive(long chatId, boolean active) {
         VolunteerSession session = volunteerSessions.get(chatId);
         if (session != null) {
@@ -66,6 +79,10 @@ public class VolunteerService {
         }
     }
 
+    /**
+     * Получает сессии всех волонтеров.
+     * @return карта сессий волонтеров
+     */
     public Map<Long, VolunteerSession> getVolunteerSessions() {
         return volunteerSessions;
     }

@@ -1,10 +1,17 @@
 package pro.sky.telegrambot.model;
 
+/**
+ * Класс, представляющий сессию волонтера.
+ */
 public class VolunteerSession {
     private final long chatId;
     private boolean busy;
     private boolean active;
 
+    /**
+     * Создает новую сессию волонтера с указанным идентификатором чата.
+     * @param chatId идентификатор чата
+     */
     public VolunteerSession(long chatId) {
         this.chatId = chatId;
         this.busy = false;

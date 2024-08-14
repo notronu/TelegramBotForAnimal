@@ -19,6 +19,11 @@ public class ShelterRepository {
             new Shelter("Dog Shelter", "Address for Dog Shelter", AnimalType.DOG)
     );
 
+    /**
+     * Находит приют по типу животных.
+     * @param type тип животных
+     * @return опционально найденный приют
+     */
     public Optional<Shelter> findByType(AnimalType type) {
         return shelters.stream()
                 .filter(shelter -> shelter.getType() == type)

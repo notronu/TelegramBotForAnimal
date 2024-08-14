@@ -22,6 +22,7 @@ public enum BotCommand {
     RECOMMEND_CYNOLOGISTS("Рекомендации по проверенным кинологам", new RecommendCynologistsCommandHandler()),
     GET_FILE("Получить файл", new GetFileCommandHandler()),
     JOIN_CHAT("Присоединиться к беседе с клиентом", new JoinChatCommandHandler()),
+    LEAVE_CHAT("Попрощаться с клиентом", new LeaveChatCommandHandler()),
     END_CHAT("Завершить беседу с клиентом", new EndChatCommandHandler()),
     REGISTER_VOLUNTEER("Регистрация волонтера", new RegisterVolunteerCommandHandler()),
     VOLUNTEER_ACTIVE("Активен", new VolunteerActiveCommandHandler()),
@@ -36,10 +37,20 @@ public enum BotCommand {
         this.handler = handler;
     }
 
+    /**
+     * Выполняет команду.
+     * @param botService сервис для взаимодействия с ботом
+     * @param chatId идентификатор чата
+     */
     public void execute(BotService botService, long chatId) {
         handler.handle(botService, chatId);
     }
 
+    /**
+     * Преобразует строку в соответствующую команду.
+     * @param text текст команды
+     * @return соответствующая команда
+     */
     public static BotCommand fromString(String text) {
         for (BotCommand command : BotCommand.values()) {
             if (command.command.equalsIgnoreCase(text)) {

@@ -34,6 +34,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         telegramBot.setUpdatesListener(this);
     }
 
+    /**
+     * Обрабатывает обновления от Telegram.
+     * @param updates список обновлений
+     * @return статус обработки обновлений
+     */
     @Override
     public int process(List<Update> updates) {
         updates.forEach(update -> {

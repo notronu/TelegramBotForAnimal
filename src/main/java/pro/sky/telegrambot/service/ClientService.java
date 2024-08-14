@@ -10,6 +10,9 @@ import pro.sky.telegrambot.model.VolunteerSession;
 
 import java.util.Map;
 
+/**
+ * Сервис для работы с клиентами.
+ */
 @Service
 public class ClientService {
 
@@ -25,6 +28,10 @@ public class ClientService {
         this.volunteerService = volunteerService;
     }
 
+    /**
+     * Вызывает волонтера для клиента.
+     * @param clientChatId идентификатор чата клиента
+     */
     public void callVolunteer(long clientChatId) {
         Map<Long, VolunteerSession> volunteerSessions = volunteerService.getVolunteerSessions();
         if (volunteerSessions.isEmpty()) {

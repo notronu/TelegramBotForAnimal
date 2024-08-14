@@ -5,7 +5,6 @@ import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pro.sky.telegrambot.model.AnimalType;
-import pro.sky.telegrambot.service.ShelterService;
 
 /**
  * Утилита для работы с локациями.
@@ -13,18 +12,17 @@ import pro.sky.telegrambot.service.ShelterService;
 @Component
 public class LocationUtil {
 
-    private static ShelterService shelterService;
     private static TelegramBot telegramBot;
 
     @Autowired
-    public LocationUtil(ShelterService shelterService, TelegramBot telegramBot) {
-        LocationUtil.shelterService = shelterService;
+    public LocationUtil(TelegramBot telegramBot) {
         LocationUtil.telegramBot = telegramBot;
     }
 
     /**
      * Отправляет ссылку на местоположение приюта для кошек.
-     * @param chatId ID чата
+     * @param chatId идентификатор чата
+     * @param type тип животных
      */
     public static void sendCatShelterLocation(long chatId, AnimalType type) {
         String locationUrl = "https://www.google.com/maps/dir/?api=1&destination=координаты_приюта_для_кошек";
@@ -33,7 +31,8 @@ public class LocationUtil {
 
     /**
      * Отправляет ссылку на местоположение приюта для собак.
-     * @param chatId ID чата
+     * @param chatId идентификатор чата
+     * @param type тип животных
      */
     public static void sendDogShelterLocation(long chatId, AnimalType type) {
         String locationUrl = "https://www.google.com/maps/dir/?api=1&destination=координаты_приюта_для_собак";
