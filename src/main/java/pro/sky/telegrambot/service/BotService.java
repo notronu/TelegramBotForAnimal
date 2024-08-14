@@ -55,7 +55,7 @@ public class BotService {
                 new String[]{"Главное меню"}
         );
         this.chatMenuKeyboard = new ReplyKeyboardMarkup(
-                new String[]{"Прекратить беседу с клиентом"}
+                new String[]{"Завершить беседу с клиентом"}
         );
     }
 
@@ -183,5 +183,7 @@ public class BotService {
             telegramBot.execute(new SendMessage(clientChatId, "Волонтер прекратил беседу с вами."));
         }
         telegramBot.execute(new SendMessage(chatId, "Вы прекратили беседу с клиентом."));
+        sendMainMenu(clientChatId);  // Возврат к исходному состоянию
+        sendVolunteerMenu(chatId);   // Возврат к исходному состоянию
     }
 }

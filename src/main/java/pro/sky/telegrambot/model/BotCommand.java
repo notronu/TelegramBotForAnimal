@@ -22,7 +22,7 @@ public enum BotCommand {
     RECOMMEND_CYNOLOGISTS("Рекомендации по проверенным кинологам", new RecommendCynologistsCommandHandler()),
     GET_FILE("Получить файл", new GetFileCommandHandler()),
     JOIN_CHAT("Присоединиться к беседе с клиентом", new JoinChatCommandHandler()),
-    END_CHAT("Прекратить беседу с клиентом", new EndChatCommandHandler()),
+    END_CHAT("Завершить беседу с клиентом", new EndChatCommandHandler()),
     REGISTER_VOLUNTEER("Регистрация волонтера", new RegisterVolunteerCommandHandler()),
     VOLUNTEER_ACTIVE("Активен", new VolunteerActiveCommandHandler()),
     VOLUNTEER_INACTIVE("Неактивен", new VolunteerInactiveCommandHandler()),

@@ -35,6 +35,7 @@ public class ClientService {
             clientSession.setClientQuestion("Вопрос клиента"); // Замените на фактический вопрос клиента
             logger.info("Client {} is requesting a volunteer", clientChatId);
             chatService.notifyVolunteer(clientSession, volunteerSessions);
+            telegramBot.execute(new SendMessage(clientChatId, "Ваш запрос на волонтера был отправлен. Пожалуйста, подождите."));
         }
     }
 }
