@@ -192,5 +192,6 @@ public class BotService {
                 .replyMarkup(new ReplyKeyboardMarkup(
                         new String[]{"Местоположение приюта для собак", "Главное меню"}
                 )));
+
     }
 }
