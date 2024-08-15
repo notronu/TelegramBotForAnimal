@@ -6,4 +6,5 @@ package pro.sky.telegrambot.model;
 public enum AnimalType {
     CAT,
     DOG
+
 }

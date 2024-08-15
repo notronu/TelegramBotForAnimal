@@ -24,4 +24,5 @@ public class ShelterRepository {
                 .filter(shelter -> shelter.getType() == type)
                 .findFirst();
     }
+
 }

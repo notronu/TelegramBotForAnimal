@@ -40,4 +40,5 @@ public class Shelter {
     public void setType(AnimalType type) {
         this.type = type;
     }
+
 }

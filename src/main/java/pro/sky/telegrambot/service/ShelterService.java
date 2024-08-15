@@ -22,4 +22,5 @@ public class ShelterService {
     public Optional<Shelter> findShelterByType(AnimalType type) {
         return shelterRepository.findByType(type);
     }
+
 }

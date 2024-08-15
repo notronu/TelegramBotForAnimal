@@ -39,4 +39,5 @@ public class LocationUtil {
         String locationUrl = "https://www.google.com/maps/dir/?api=1&destination=координаты_приюта_для_собак";
         telegramBot.execute(new SendMessage(chatId, "Местоположение приюта для собак: " + locationUrl));
     }
+
 }
