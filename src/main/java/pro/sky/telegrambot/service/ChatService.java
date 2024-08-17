@@ -23,6 +23,7 @@ public class ChatService {
 
     private final TelegramBot telegramBot;
     private final Map<Long, Long> activeChats = new HashMap<>();
+    private final Map<Long, Long> clientVolunteerMap = new HashMap<>();
     private final Map<Long, ClientSession> clientSessions = new HashMap<>();
     private final VolunteerService volunteerService;
 
@@ -69,6 +70,7 @@ public class ChatService {
         logger.info("Starting chat between client {} and volunteer {}", clientChatId, volunteerChatId);
         activeChats.put(clientChatId, volunteerChatId);
         clientSessions.put(clientChatId, new ClientSession(clientChatId));
+        clientVolunteerMap.put(clientChatId, volunteerChatId); // Добавляем соответствие клиента и волонтера
         VolunteerSession volunteerSession = volunteerService.getVolunteerSessions().get(volunteerChatId);
         if (volunteerSession != null) {
             volunteerSession.setBusy(true);
@@ -81,6 +83,7 @@ public class ChatService {
      */
     public void endChat(long chatId) {
         logger.info("Ending chat for {}", chatId);
+        clientVolunteerMap.remove(chatId);
         Long volunteerChatId = activeChats.remove(chatId);
         if (volunteerChatId != null) {
             volunteerService.getVolunteerSessions().get(volunteerChatId).setBusy(false);
@@ -91,8 +94,8 @@ public class ChatService {
                     .map(Map.Entry::getKey)
                     .findFirst()
                     .orElse(null);
-
             if (clientChatId != null) {
+                clientVolunteerMap.remove(clientChatId);
                 Long volunteerId = activeChats.remove(clientChatId);
                 if (volunteerId != null) {
                     volunteerService.getVolunteerSessions().get(volunteerId).setBusy(false);
@@ -110,7 +113,7 @@ public class ChatService {
      */
     public long getClientChatIdForVolunteer(long volunteerChatId) {
         logger.info("Getting client chat ID for volunteer {}", volunteerChatId);
-        long clientChatId = activeChats.entrySet().stream()
+        long clientChatId = clientVolunteerMap.entrySet().stream()
                 .filter(entry -> entry.getValue().equals(volunteerChatId))
                 .map(Map.Entry::getKey)
                 .findFirst()
@@ -128,7 +131,7 @@ public class ChatService {
         for (VolunteerSession volunteerSession : volunteerSessions.values()) {
             if (!volunteerSession.isBusy() && volunteerSession.isActive()) {
                 logger.info("Notifying volunteer {} about client {}", volunteerSession.getChatId(), clientSession.getChatId());
-                activeChats.put(clientSession.getChatId(), volunteerSession.getChatId());  // Добавляем в активные чаты
+                clientVolunteerMap.put(clientSession.getChatId(), volunteerSession.getChatId());  // Добавляем в активные чаты
                 telegramBot.execute(new SendMessage(volunteerSession.getChatId(), "Клиент " + clientSession.getChatId() + " просит ответить на вопросы.")
                         .replyMarkup(new ReplyKeyboardMarkup(
                                 new String[]{"Присоединиться к беседе с клиентом", "Главное меню"}

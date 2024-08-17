@@ -27,7 +27,7 @@ public enum BotCommand {
     REGISTER_VOLUNTEER("Регистрация волонтера", new RegisterVolunteerCommandHandler()),
     VOLUNTEER_ACTIVE("Активен", new VolunteerActiveCommandHandler()),
     VOLUNTEER_INACTIVE("Неактивен", new VolunteerInactiveCommandHandler()),
-    DEFAULT("", new DefaultCommandHandler());
+    DEFAULT("/start", new DefaultCommandHandler());
 
     private final String command;
     private final CommandHandler handler;
@@ -57,6 +57,6 @@ public enum BotCommand {
                 return command;
             }
         }
-        return DEFAULT;
+        return null;
     }
 }

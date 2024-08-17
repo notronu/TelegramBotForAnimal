@@ -65,11 +65,13 @@ public class BotService {
             String text = update.message().text();
             long chatId = update.message().chat().id();
 
-            if (chatService.isActiveChat(chatId)) {
+            BotCommand command = BotCommand.fromString(text);
+            if (command != null) {
+                command.execute(this, chatId);
+            } else if (chatService.isActiveChat(chatId)) {
                 chatService.routeMessage(chatId, update.message());
             } else {
-                BotCommand command = BotCommand.fromString(text);
-                command.execute(this, chatId);
+                BotCommand.DEFAULT.execute(this, chatId);
             }
         }
     }
