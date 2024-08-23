@@ -1,43 +1,19 @@
 package pro.sky.telegrambot.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-
-import javax.persistence.*;
 import java.util.Objects;
 
-@Entity
-@Table(name = "pets")
-
 public class Pet {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private long id;
-    @Column(nullable = false)
     private String name;
-    @Column(nullable = false)
     private String breed;
-    @Column(nullable = false)
     private int age;
-    @Column(nullable = false)
     private String food;
-    @Column
     private String shelter;
-//    @JsonIgnore
 
-    public Pet(long id, String name, String breed, int age, String food, String shelter) {
-        this.id = id;
-        this.name = name;
-        this.breed = breed;
-        this.age = age;
-        this.food = food;
-        this.shelter = shelter;
+    public Pet() {
+
     }
-
 
     public long getId() {
         return id;
@@ -99,4 +75,17 @@ public class Pet {
     public int hashCode() {
         return Objects.hash(id, name, breed, age, food, shelter);
     }
+
+    @Override
+    public String toString() {
+        return "Pet{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", breed='" + breed + '\'' +
+                ", age=" + age +
+                ", food='" + food + '\'' +
+                ", shelter='" + shelter + '\'' +
+                '}';
+    }
 }
+

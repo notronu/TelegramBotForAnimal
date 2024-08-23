@@ -9,13 +9,13 @@ public class User {
     private String name;
     private String phone;
     private String login;
+    private Pet pet;
 
-    public User(long chatId, String name, String phone, String login) {
-        this.chatId = chatId;
-        this.name = name;
-        this.phone = phone;
-        this.login = login;
+
+    public User() {
+
     }
+
 
     public long getId() {
         return id;
@@ -57,17 +57,25 @@ public class User {
         this.login = login;
     }
 
+    public Pet getPet() {
+        return pet;
+    }
+
+    public void setPet(Pet pet) {
+        this.pet = pet;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id && chatId == user.chatId && Objects.equals(name, user.name) && Objects.equals(phone, user.phone) && Objects.equals(login, user.login);
+        return id == user.id && chatId == user.chatId && Objects.equals(name, user.name) && Objects.equals(phone, user.phone) && Objects.equals(login, user.login) && Objects.equals(pet, user.pet);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, chatId, name, phone, login);
+        return Objects.hash(id, chatId, name, phone, login, pet);
     }
 
     @Override
@@ -78,6 +86,7 @@ public class User {
                 ", name='" + name + '\'' +
                 ", phone='" + phone + '\'' +
                 ", login='" + login + '\'' +
+                ", pet=" + pet +
                 '}';
     }
 }

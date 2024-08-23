@@ -10,15 +10,24 @@ import org.springframework.stereotype.Service;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pro.sky.telegrambot.model.AnimalType;
+import pro.sky.telegrambot.model.PetReport;
+import pro.sky.telegrambot.model.User;
+import pro.sky.telegrambot.repository.PetRepository;
+import pro.sky.telegrambot.repository.ReportRepository;
 import pro.sky.telegrambot.repository.ShelterRepository;
 import pro.sky.telegrambot.repository.UserRepository;
 import pro.sky.telegrambot.util.LocationUtil;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.awt.SystemColor.text;
 
 
 /**
@@ -31,20 +40,28 @@ public class BotService {
     private final ShelterRepository shelterRepository;
     private final Keyboard mainMenuKeyboard;
     private final Keyboard instructionMenuKeyboard;
-    private static final Map<Long, Integer> incorrectCounts = new ConcurrentHashMap<>();
+    private final Keyboard petReportMenuKeyboard;
+    private final Map<Long, Integer> incorrectCounts = new HashMap<>();
     private static final Logger logger = LogManager.getLogger(BotService.class);
     private static final Pattern PHONE_PATTERN = Pattern.compile("\\+7-9\\d{2}-\\d{3}-\\d{2}-\\d{2}");
     private static final Pattern ANSWER_PATTERN = Pattern.compile("([0-9\\.\\:\\s]{16})(\\s)([\\W+]+)");
     private static final Pattern ANSWER_PATTERN1 = Pattern.compile("([\\W+]+)(\n)([\\W+]+)(\n)([\\W+]+)");
     private static final Pattern ANSWER_PATTERN2 = Pattern.compile("[0-9]");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private UserService userService;
     private final UserRepository repository;
+    private PetService petService;
+    private final ReportRepository reportRepository;
+    private final PetRepository petRepository;
+
     private Map<Long, String> userStates = new HashMap<>();
 
 
-    public BotService(TelegramBot telegramBot, ShelterRepository shelterRepository, UserRepository repository, UserService userService) {
+    public BotService(TelegramBot telegramBot, ShelterRepository shelterRepository, UserRepository repository, UserService userService, ReportRepository reportRepository, PetRepository petRepository) {
         this.userService = userService;
         this.repository = repository;
+        this.reportRepository = reportRepository;
+        this.petRepository = petRepository;
         this.telegramBot = telegramBot;
         this.shelterRepository = shelterRepository;
         this.mainMenuKeyboard = new ReplyKeyboardMarkup(
@@ -53,11 +70,17 @@ public class BotService {
                 new String[]{"Информация о приюте "}
         );
         this.instructionMenuKeyboard = new ReplyKeyboardMarkup(
-                new String[]{"Инструкция по знакомству с животным","Правила безопасности на территории приюта"},
+                new String[]{"Инструкция по знакомству с животным", "Правила безопасности на территории приюта"},
                 new String[]{"Инструкция по обустройству дома", "Рекомендации по проверенным кинологам"},
                 new String[]{"Обустройство дома для питомца с ограниченными возможностями", "Информация по транспортировке питомца"},
-                new String[]{"Позвать волонтера", "Запросить связь", "Главное меню"});
+                new String[]{"Позвать волонтера", "Запросить связь", "Главное меню"}
+        );
+        this.petReportMenuKeyboard = new ReplyKeyboardMarkup(
+                new String[]{"Форма ежедневного отчета", "Отправить отчет"},
+                new String[]{"Позвать волонтера", "Главное меню"});
+
     }
+
     public void handleUpdate(Update update) {
         if (update.message() != null && update.message().text() != null) {
             String text = update.message().text();
@@ -70,6 +93,10 @@ public class BotService {
             if ("PhoneListener".equals(state)) {
                 handleContactInput(chatId, text);
                 userStates.remove(chatId);
+            }
+                 else if ("SendReport".equals(state)) {
+                    addReportInRepository(chatId, text);
+                    userStates.remove(chatId);
             } else {
                 switch (text) {
                     case "Выбор приюта":
@@ -84,12 +111,8 @@ public class BotService {
                         sendInstruction(chatId);
                         understood = true;
                         break;
-                    case "Прислать отчет о питомце":
-                        sendPetReport(chatId);
-                        understood = true;
-                        break;
                     case "Позвать волонтера":
-                        callVolunteer(chatId, text);
+                        callVolunteer(chatId);
                         understood = true;
                         break;
                     case "Информация о приюте для кошек":
@@ -124,25 +147,95 @@ public class BotService {
                         writeDownContactPhoneNumber(chatId);
                         understood = true;
                         break;
+                    case "Форма ежедневного отчета":
+                        sendDailyReportForm(chatId);
+                        understood = true;
+                        break;
+                    case "Отправить отчет":
+                        sendReport(chatId);
+                        understood = true;
+                        break;
+                    case "Прислать отчет о питомце":
+                        sendPetReport(chatId);
+                        understood = true;
+                        break;
                     default:
                         sendMainMenu(chatId);
                         break;
+
                 }
 
                 if (!understood) {
                     var count = incorrectCounts.getOrDefault(chatId, 0);
-                    if (count < 1) {
+                    if (count < 2) {
                         incorrectCounts.put(chatId, count + 1);
-                        writeIncorrectText(chatId, text);
+                        writeIncorrectText(chatId);
                     } else {
-                        writeIncorrectText2(chatId, text);
-                        incorrectCounts.remove(chatId);
+                        writeIncorrectText2(chatId);
                     }
                 }
             }
         }
     }
 
+    private void sendDailyReportForm(long chatId) {
+        String text = "В ежедневный отчет входит следующая информация: \n" +
+                "\n" +
+                "- *Фото животного.*\n" +
+                "(Фотография и текст должны быть одним сообщением)" +
+                "- *Рацион животного.*\n" +
+                "- *Общее самочувствие и привыкание к новому месту.*\n" +
+                "- *Изменения в поведении: отказ от старых привычек, приобретение новых.*\n" +
+                "\n" +
+                "Отчет нужно присылать каждый день, ограничений в сутках по времени сдачи отчета нет. Каждый день после 21:00 волонтеры отсматривают все присланные отчеты," +
+                " и в случае некорректного заполнения тебе в телеграмм поступит напоминание от бота о правильности заполнения отчета.\n" +
+                "\n" +
+                "Если ты не будешь присылать ежедневный отчет, то по истечении 2 дней волонтеры будут обязаны самолично проверять условия содержания животного. \n" +
+                "Как только период в 30 дней заканчивается, волонтеры принимают решение о том, остается животное у хозяина или нет. Испытательный срок может быть пройден, может быть продлен на срок еще 14 или 30 дней, а может быть не пройден.";
+        SendMessage message = new SendMessage(chatId, text);
+        telegramBot.execute(message);
+    }
+
+
+    private void sendReport(long chatId) {
+        String text = """
+                Здесь необходмо составить отчет и отправить нашему сотруднику.\s
+                Образец отчета смотри ниже. Есть 3 темы. \s
+                Рацион животного.\s
+                Общее самочувствие и привыкание к новому месту.\s
+                Изменения в поведении: отказ от старых привычек, приобретение новых.\s
+
+                Каждая тема с новой строки.""";
+        SendMessage message = new SendMessage(chatId, text);
+        telegramBot.execute(message);
+        userStates.put(chatId, "SendReport");
+    }
+
+    private void sendPetReport(long chatId) {
+        String text = "Мы очень рады, что у нашего питомца появился новый друг! Но тем не менее мы переживаем за наших питомцев." +
+                "Мы хотели бы чтобы ты оповещал нас о состоянии питомца на протяжении 30 дней." +
+                "В данном разделе ты можешь получить образец формы ежедневного отчета, на основании, которого ты можешь нас оповещать о состоянии питомца";
+        SendMessage message = new SendMessage(chatId, text);
+        telegramBot.execute(message);
+    }
+
+    private void addReportInRepository(Long chatId, String text) {
+        Matcher matcher = ANSWER_PATTERN1.matcher(text);
+        if (matcher.matches()) {
+            var task = new PetReport();
+            task.setAnimalsDiet(matcher.group(1));
+            task.setAnimalHealth(matcher.group(3));
+            task.setAnimalHabits(matcher.group(5));
+            task.setData(LocalDateTime.now());
+            task.setUser(repository.findByChatId(chatId));
+            reportRepository.save(task);
+            SendMessage message = new SendMessage(chatId, "Отчет успешно добавлен");
+            telegramBot.execute(message);
+        } else {
+            SendMessage message = new SendMessage(chatId, "Неверный формат отчета");
+            telegramBot.execute(message);
+        }
+    }
         private void writeDownContactPhoneNumber(long chatId) {
             String text = "Я могу записать Ваши контактные данные и в ближайшее время с Вами свяжется наш волонтер и проконсультируют Вас. " +
                     "Введите номер телефона";
@@ -172,16 +265,16 @@ public class BotService {
 
     }
 
-    private void writeIncorrectText(long chatId, String text) {
+    private void writeIncorrectText(long chatId) {
         SendMessage message = new SendMessage(chatId, "Не понял. Давайте попробуем снова.\n" +
                 "Что бы вы хотели сделать? Выберете пункт из /menu");
         telegramBot.execute(message);
     }
 
-    private void writeIncorrectText2(long chatId, String text) {
+    private void writeIncorrectText2(long chatId) {
         SendMessage message = new SendMessage(chatId, "Может тогда вызвать волонтера?");
         telegramBot.execute(message);
-        callVolunteer(chatId, text);
+        callVolunteer(chatId);
     }
 
     private void informationAboutShelter(long chatId)  {
@@ -239,24 +332,21 @@ public class BotService {
         telegramBot.execute(new SendMessage(chatId, "Инструкция как взять животное из приюта: ...").replyMarkup(instructionMenuKeyboard));;
     }
 
-    private void sendPetReport(long chatId) {
-        telegramBot.execute(new SendMessage(chatId, "Прислать отчет о питомце: ..."));
-    }
 
-    private void callVolunteer(long chatId, String text) {
+    private void callVolunteer(long chatId) {
         try {
             // Отправляем сообщение пользователю
             telegramBot.execute(new SendMessage(chatId, "Запрос отправлен волонтеру."));
 
             // Отправляем сообщение волонтеру
-            sendVolunteer(chatId, text);
+            sendVolunteer(chatId);
         } catch (TelegramApiException e) {
             logger.error("Ошибка при отправке сообщения пользователю", e);
             telegramBot.execute(new SendMessage(chatId, "Произошла ошибка при обработке запроса."));
         }
     }
 
-    private void sendVolunteer(long chatId, String text) throws TelegramApiException {
+    private void sendVolunteer(long chatId) throws TelegramApiException {
         final long ADMIN_ID = 76421741;
         telegramBot.execute(new SendMessage(ADMIN_ID, "Новое обращение от @" + chatId + ": " + text));
     }

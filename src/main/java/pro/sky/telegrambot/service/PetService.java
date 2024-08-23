@@ -1,26 +1,28 @@
 package pro.sky.telegrambot.service;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+
 
 import org.springframework.stereotype.Service;
-import pro.sky.telegrambot.exception.RecordNotFoundException;
+import pro.sky.telegrambot.exception.BotException;
 import pro.sky.telegrambot.model.Pet;
 import pro.sky.telegrambot.repository.PetRepository;
+import pro.sky.telegrambot.repository.UserRepository;
 
+import java.util.List;
 
 @Service
 public class PetService {
 
     private final Logger logger = LoggerFactory.getLogger(PetService.class);
-    @Autowired
     private final PetRepository petRepository;
+    private final UserRepository userRepository;
 
-
-    public PetService(PetRepository petRepository) {
+    public PetService(PetRepository petRepository, UserRepository userRepository) {
         this.petRepository = petRepository;
+        this.userRepository = userRepository;
     }
+
 
     public Pet addPet(Pet pet) {
         logger.info("Питомец добавлен");
@@ -30,8 +32,8 @@ public class PetService {
     public Pet getPetById(long id) {
         try {
             logger.info("Питомец был найден, id =" + id);
-            return petRepository.findById(id).orElseThrow(RecordNotFoundException::new);
-        } catch (RecordNotFoundException e) {
+            return petRepository.findById(id).orElseThrow(BotException::new);
+        } catch (BotException e) {
             logger.error("Питомец с id =" + id + " не найден");
             throw e;
         }
@@ -53,6 +55,22 @@ public class PetService {
                 }).orElse(false);
     }
 
+    public List<Pet> getAll() {
+        return petRepository.findAll();
+    }
 
 
+    public void adopt(long petId, long userId) {
+        var user = userRepository.findById(userId).orElse(null);
+        if(user==null || user.getPet()!=null) {
+            throw new RuntimeException();
+        }
+        var pet = petRepository.findById(petId).orElse(null);
+        if(pet==null) {
+            throw new RuntimeException();
+        }
+        user.setPet(pet);
+        userRepository.save(user);
+
+    }
 }

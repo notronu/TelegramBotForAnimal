@@ -8,3 +8,4 @@ import pro.sky.telegrambot.model.Pet;
 public interface PetRepository extends JpaRepository<Pet, Long> {
 
 }
+
