@@ -2,13 +2,16 @@ package pro.sky.telegrambot.controller;
 
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import pro.sky.telegrambot.model.Pet;
 import pro.sky.telegrambot.service.PetService;
 
 @RestController
 @RequestMapping(path = "/pets")
-@Api(tags = "API для работы с питомцами")
+@Tag(name = "Pets API", description = "API для управления питомцами")
 public class PetController {
 
     private final PetService petService;
@@ -18,35 +21,35 @@ public class PetController {
     }
 
     @PostMapping
-    @ApiOperation(value = "Добавить нового питомца", notes = "Создает нового питомца")
+    @Operation(summary = "Добавить нового питомца", description = "Создает нового питомца")
     public Pet addPet(@RequestBody Pet pet) {
         return petService.addPet(pet);
     }
 
     @GetMapping
-    @ApiOperation(value = "Получить питомца по ID", notes = "Возвращает питомца по его ID")
-    @ApiParam(name = "id", value = "ID питомца", required = true)
+    @Operation(summary = "Получение питомца по айди", description = "Получает питомца по айди.")
+    @Parameter(name = "id", description = "ID питомца", required = true)
     public Pet getPetById(@RequestParam long id) {
         return petService.getPetById(id);
     }
 
     @PutMapping
-    @ApiOperation(value = "Обновить информацию о питомце", notes = "Обновляет существующего питомца")
+    @Operation(summary = "Обновляет информацию о питомце", description = "Обновляет питомца")
     public Pet updatePet(@RequestBody Pet pet) {
         return petService.updatePet(pet);
     }
 
     @DeleteMapping
-    @ApiOperation(value = "Удалить питомца", notes = "Удаляет питомца по его ID")
-    @ApiParam(name = "id", value = "ID питомца", required = true)
+    @Operation(summary = "УДаляет питомца", description = "Удаляет питомца по айди")
+    @Parameter(name = "id", description = "ID питомца", required = true)
     public boolean deletePet(@RequestParam long id) {
         return petService.deletePet(id);
     }
 
     @GetMapping("adopt")
-    @ApiOperation(value = "Усыновить питомца", notes = "Усыновляет питомца для пользователя")
-    @ApiParam(name = "petId", value = "ID питомца для усыновления", required = true)
-    @ApiParam(name = "userId", value = "ID пользователя, усыновляющего питомца", required = true)
+    @Operation(summary = "Усыновление", description = "Усыновление питомца")
+    @Parameter(name = "petId", description = "ID питомца", required = true)
+    @Parameter(name = "userId", description = "ID пользователя", required = true)
     public void adopt(@RequestParam long petId, @RequestParam long userId) {
         petService.adopt(petId, userId);
     }
