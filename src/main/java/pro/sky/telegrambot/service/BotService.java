@@ -1,6 +1,7 @@
 package pro.sky.telegrambot.service;
 
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
@@ -10,6 +11,11 @@ import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.model.BotCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pro.sky.telegrambot.model.PetRegistrationState;
+import pro.sky.telegrambot.model.PetRegistrationStep;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Сервис для обработки логики бота.
@@ -28,6 +34,7 @@ public class BotService {
     private final Keyboard instructionMenuKeyboard;
     private final Keyboard volunteerMenuKeyboard;
     private final Keyboard chatMenuKeyboard;
+    private final Map<Long, PetRegistrationState> petRegistrationMap = new HashMap<>();
 
     @Autowired
     public BotService(TelegramBot telegramBot, ChatService chatService,
@@ -58,6 +65,7 @@ public class BotService {
 
     /**
      * Обрабатывает обновление из Telegram.
+     *
      * @param update обновление из Telegram
      */
     public void handleUpdate(Update update) {
@@ -74,12 +82,44 @@ public class BotService {
                 BotCommand.DEFAULT.execute(this, chatId);
             }
         }
+        long chatId = update.message().chat().id();
+        String text = update.message().text();
+        PetRegistrationState state = petRegistrationMap.get(chatId);
+
+        if (state != null) {
+            if (state.getStep() == PetRegistrationStep.NAME) {
+                state.setName(text);
+                state.nextStep();
+                telegramBot.execute(new SendMessage(chatId, "Введите породу питомца:"));
+            } else if (state.getStep() == PetRegistrationStep.BREED) {
+                state.setBreed(text);
+                state.nextStep();
+                telegramBot.execute(new SendMessage(chatId, "Загрузите фотографию питомца:"));
+            } else if (state.getStep() == PetRegistrationStep.PHOTO && update.message().photo() != null) {
+                String filePath = savePhoto(update.message().photo());
+                state.setPhotoPath(filePath);
+                int petId = volunteerService.addPet(state.getName(), state.getBreed(), state.getPhotoPath());
+                telegramBot.execute(new SendMessage(chatId, "Питомец зарегистрирован под номером " + petId));
+                petRegistrationMap.remove(chatId);
+            } else {
+                telegramBot.execute(new SendMessage(chatId, "Ожидается фотография. Попробуйте снова."));
+            }
+        } else {
+            BotCommand command = BotCommand.fromString(text);
+            if (command != null) {
+                command.execute(this, chatId);
+            } else {
+                BotCommand.DEFAULT.execute(this, chatId);
+            }
+        }
+
     }
 
     // Методы для выполнения команд
 
     /**
      * Отправляет главное меню.
+     *
      * @param chatId идентификатор чата
      */
     public void sendMainMenu(long chatId) {
@@ -88,6 +128,7 @@ public class BotService {
 
     /**
      * Отправляет меню выбора приюта.
+     *
      * @param chatId идентификатор чата
      */
     public void sendShelterChoiceMenu(long chatId) {
@@ -100,6 +141,7 @@ public class BotService {
 
     /**
      * Отправляет меню инструкций.
+     *
      * @param chatId идентификатор чата
      */
     public void sendInstructionMenu(long chatId) {
@@ -109,6 +151,7 @@ public class BotService {
 
     /**
      * Отправляет отчет о питомце.
+     *
      * @param chatId идентификатор чата
      */
     public void sendPetReport(long chatId) {
@@ -117,6 +160,7 @@ public class BotService {
 
     /**
      * Отправляет информацию о приюте для кошек.
+     *
      * @param chatId идентификатор чата
      */
     public void sendCatShelterInfo(long chatId) {
@@ -128,6 +172,7 @@ public class BotService {
 
     /**
      * Отправляет информацию о приюте для собак.
+     *
      * @param chatId идентификатор чата
      */
     public void sendDogShelterInfo(long chatId) {
@@ -139,6 +184,7 @@ public class BotService {
 
     /**
      * Отправляет инструкцию по знакомству с животным.
+     *
      * @param chatId идентификатор чата
      */
     public void sendMeetAnimalInstruction(long chatId) {
@@ -150,6 +196,7 @@ public class BotService {
 
     /**
      * Отправляет инструкцию как взять животное.
+     *
      * @param chatId идентификатор чата
      */
     public void sendTakeAnimalInstruction(long chatId) {
@@ -161,6 +208,7 @@ public class BotService {
 
     /**
      * Отправляет инструкцию по обустройству дома.
+     *
      * @param chatId идентификатор чата
      */
     public void sendSetupHomeInstruction(long chatId) {
@@ -172,6 +220,7 @@ public class BotService {
 
     /**
      * Отправляет рекомендации по проверенным кинологам.
+     *
      * @param chatId идентификатор чата
      */
     public void sendCynologistRecommendations(long chatId) {
@@ -180,7 +229,8 @@ public class BotService {
 
     /**
      * Отправляет файл в чат.
-     * @param chatId идентификатор чата
+     *
+     * @param chatId   идентификатор чата
      * @param filePath путь к файлу
      */
     public void sendFile(long chatId, String filePath) {
@@ -189,6 +239,7 @@ public class BotService {
 
     /**
      * Вызывает волонтера для чата.
+     *
      * @param chatId идентификатор чата
      */
     public void callVolunteer(long chatId) {
@@ -197,6 +248,7 @@ public class BotService {
 
     /**
      * Присоединяется к беседе с клиентом.
+     *
      * @param chatId идентификатор чата
      */
     public void joinChat(long chatId) {
@@ -214,6 +266,7 @@ public class BotService {
 
     /**
      * Попрощаться с клиентом и завершить беседу.
+     *
      * @param chatId идентификатор чата
      */
     public void leaveChat(long chatId) {
@@ -222,6 +275,7 @@ public class BotService {
 
     /**
      * Регистрирует волонтера и отправляет меню волонтера.
+     *
      * @param chatId идентификатор чата
      */
     public void registerVolunteer(long chatId) {
@@ -231,6 +285,7 @@ public class BotService {
 
     /**
      * Устанавливает волонтера активным.
+     *
      * @param chatId идентификатор чата
      * @param active статус активности
      */
@@ -240,6 +295,7 @@ public class BotService {
 
     /**
      * Отправляет меню волонтера.
+     *
      * @param chatId идентификатор чата
      */
     public void sendVolunteerMenu(long chatId) {
@@ -248,6 +304,7 @@ public class BotService {
 
     /**
      * Завершает беседу с клиентом.
+     *
      * @param chatId идентификатор чата
      */
     public void endChat(long chatId) {
@@ -259,5 +316,19 @@ public class BotService {
         telegramBot.execute(new SendMessage(chatId, "Вы прекратили беседу с клиентом."));
         sendMainMenu(clientChatId);  // Возврат к исходному состоянию
         sendVolunteerMenu(chatId);   // Возврат к исходному состоянию
+    }
+
+    public void startPetRegistration(long chatId) {
+        petRegistrationMap.put(chatId, new PetRegistrationState());
+        telegramBot.execute(new SendMessage(chatId, "Введите кличку питомца:"));
+    }
+
+    private String savePhoto(PhotoSize[] photo) {
+        // Логика сохранения фотографии и возвращение пути к файлу
+        return "/src/to/saved/photo.jpg";
+    }
+
+    public VolunteerService getVolunteerService() {
+        return volunteerService;
     }
 }

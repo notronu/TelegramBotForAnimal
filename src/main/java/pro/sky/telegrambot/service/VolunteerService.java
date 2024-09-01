@@ -5,14 +5,14 @@ import com.pengrad.telegrambot.request.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import pro.sky.telegrambot.model.PetSession;
 import pro.sky.telegrambot.model.VolunteerSession;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Сервис для управления волонтерами.
@@ -25,6 +25,8 @@ public class VolunteerService {
     private final TelegramBot telegramBot;
     private final String VOLUNTEER_FILE_PATH = "volunteer_chat_id.txt";
     private final Map<Long, VolunteerSession> volunteerSessions = new HashMap<>();
+    private static final AtomicInteger petCounter = new AtomicInteger(1);
+    private final List<PetSession> petSessions = new ArrayList<>();
 
     public VolunteerService(TelegramBot telegramBot) {
         this.telegramBot = telegramBot;
@@ -86,4 +88,17 @@ public class VolunteerService {
     public Map<Long, VolunteerSession> getVolunteerSessions() {
         return volunteerSessions;
     }
+
+    public int addPet(String name, String breed, String photoPath) {
+        int petId = petCounter.getAndIncrement();
+        PetSession petSession = new PetSession(petId, name, breed, photoPath);
+        petSessions.add(petSession);
+        return petId;
+    }
+
+    public List<PetSession> getPets() {
+        return petSessions;
+    }
+
+
 }

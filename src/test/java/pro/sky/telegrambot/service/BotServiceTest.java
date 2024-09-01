@@ -247,7 +247,7 @@ class BotServiceTest {
     @Test
     void testSendFile() {
         long chatId = 12345L;
-        String filePath = "path/to/file";
+        String filePath = "src/to/file";
 
         botService.sendFile(chatId, filePath);
 

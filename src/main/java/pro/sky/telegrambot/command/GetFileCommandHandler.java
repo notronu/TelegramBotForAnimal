@@ -13,6 +13,6 @@ public class GetFileCommandHandler implements CommandHandler {
          * @param botService сервис для взаимодействия с ботом
          * @param chatId идентификатор чата
          */
-        botService.sendFile(chatId, "/path/to/file.doc");
+        botService.sendFile(chatId, "src/main/resources/file.doc");
     }
 }

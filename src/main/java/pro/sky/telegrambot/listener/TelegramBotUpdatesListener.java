@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pro.sky.telegrambot.processor.UpdateProcessor;
 import pro.sky.telegrambot.service.BotService;
 
 import javax.annotation.PostConstruct;
@@ -22,16 +23,19 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final TelegramBot telegramBot;
     private final BotService botService;
+    private final UpdateProcessor updateProcessor;
 
     @Autowired
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, BotService botService) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, BotService botService, BotService botService1, UpdateProcessor updateProcessor) {
         this.telegramBot = telegramBot;
-        this.botService = botService;
+        this.botService = botService1;
+        this.updateProcessor = updateProcessor;
     }
 
     @PostConstruct
     public void init() {
         telegramBot.setUpdatesListener(this);
+        logger.info("TelegramBotUpdatesListener initialized and ready to receive updates.");
     }
 
     /**
@@ -41,6 +45,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      */
     @Override
     public int process(List<Update> updates) {
+        logger.info("Received {} updates.", updates.size());
+        updateProcessor.process(updates);
+        logger.info("Finished processing updates.");
         updates.forEach(update -> {
             try {
                 botService.handleUpdate(update);
@@ -50,4 +57,5 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
+
 }
