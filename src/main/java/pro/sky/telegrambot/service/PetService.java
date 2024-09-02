@@ -60,17 +60,6 @@ public class PetService {
     }
 
 
-    public void adopt(long petId, long userId) {
-        var user = userRepository.findById(userId).orElse(null);
-        if(user==null || user.getPet()!=null) {
-            throw new RuntimeException();
-        }
-        var pet = petRepository.findById(petId).orElse(null);
-        if(pet==null) {
-            throw new RuntimeException();
-        }
-        user.setPet(pet);
-        userRepository.save(user);
 
     }
-}
+

@@ -1,41 +1,48 @@
 package pro.sky.telegrambot.service;
 
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;;
+import com.pengrad.telegrambot.request.GetFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.pengrad.telegrambot.request.SendMessage;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pro.sky.telegrambot.model.AnimalType;
-import pro.sky.telegrambot.model.PetReport;
-import pro.sky.telegrambot.model.User;
-import pro.sky.telegrambot.repository.PetRepository;
-import pro.sky.telegrambot.repository.ReportRepository;
-import pro.sky.telegrambot.repository.ShelterRepository;
-import pro.sky.telegrambot.repository.UserRepository;
+
+
+import pro.sky.telegrambot.model.Photo;
+import pro.sky.telegrambot.repository.*;
 import pro.sky.telegrambot.util.LocationUtil;
+
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 import static java.awt.SystemColor.text;
+
 
 
 /**
  * Сервис для обработки логики бота.
  */
 @Service
-public class BotService {
+public class BotService extends TelegramLongPollingBot {
 
+    private final Photo photo;
     private final TelegramBot telegramBot;
     private final ShelterRepository shelterRepository;
     private final Keyboard mainMenuKeyboard;
@@ -51,27 +58,28 @@ public class BotService {
     private UserService userService;
     private final UserRepository repository;
     private PetService petService;
-    private final ReportRepository reportRepository;
     private final PetRepository petRepository;
+    private final PhotoRepository photoRepository;
 
     private Map<Long, String> userStates = new HashMap<>();
 
 
-    public BotService(TelegramBot telegramBot, ShelterRepository shelterRepository, UserRepository repository, UserService userService, ReportRepository reportRepository, PetRepository petRepository) {
+    public BotService(TelegramBot telegramBot, ShelterRepository shelterRepository, Photo photo, UserRepository repository, UserService userService, PetRepository petRepository, PhotoRepository photoRepository) {
         this.userService = userService;
+        this.photoRepository = photoRepository;
         this.repository = repository;
-        this.reportRepository = reportRepository;
+        this.photo = photo;
         this.petRepository = petRepository;
         this.telegramBot = telegramBot;
         this.shelterRepository = shelterRepository;
         this.mainMenuKeyboard = new ReplyKeyboardMarkup(
                 new String[]{"Выбор приюта", "Инструкция как взять животное из приюта"},
                 new String[]{"Прислать отчет о питомце", "Позвать волонтера"},
-                new String[]{"Информация о приюте "}
+                new String[]{"Информация о приюте", "Причины для отказа"}
         );
         this.instructionMenuKeyboard = new ReplyKeyboardMarkup(
                 new String[]{"Инструкция по знакомству с животным", "Правила безопасности на территории приюта"},
-                new String[]{"Инструкция по обустройству дома", "Рекомендации по проверенным кинологам"},
+                new String[]{"Инструкция по обустройству дома", "Советы кинолога"},
                 new String[]{"Обустройство дома для питомца с ограниченными возможностями", "Информация по транспортировке питомца"},
                 new String[]{"Позвать волонтера", "Запросить связь", "Главное меню"}
         );
@@ -80,103 +88,121 @@ public class BotService {
                 new String[]{"Позвать волонтера", "Главное меню"});
 
     }
+    @Override
+    public void onUpdateReceived(Update update) {
+        String text = update.getMessage().getText();
+        long chatId = update.getMessage().getChatId();
+        String login = update.getMessage().getFrom().getUserName();
+        var state = userStates.get(chatId);
+        var user = userService.findByUser(chatId);
 
-    public void handleUpdate(Update update) {
-        if (update.message() != null && update.message().text() != null) {
-            String text = update.message().text();
-            long chatId = update.message().chat().id();
-            String login = update.message().from().lastName();
-            var state = userStates.get(chatId);
-            var user = userService.findByUser(chatId);
-            boolean understood = false;
+        if (update.hasMessage() && update.getMessage().hasPhoto()) {
+            Message message = update.getMessage();
+            PhotoSize[] photos = update.getMessage().getPhoto().toArray(new PhotoSize[0]);
+            PhotoSize lastPhoto = photos[photos.length - 1]; // Получаем фото
+            String fileId = lastPhoto.fileId(); // Получаем ID фото
+            String caption = message.getCaption();
+//            String caption = message.setCaption() ? message.getCaption() : "";
+//            String text1 = message.getText();
+
+            // Загружаем файл фото с сервера Telegram
+            GetFile getFile = new GetFile();
+            getFile.setFileId(fileId);
+
+
+            // Сохраняем фото в базу данных
+
+            Photo photoEntity = new Photo(); // Созд. объект
+            // Заполнение поля объекта
+            photoEntity.setFileId(fileId);
+            photoEntity.setText(caption);  // Сохр. текст
+            photoEntity.setChatId(chatId); // Сохр. чат ID пользователя
+            photoEntity.setLogin(login); // Сохр. логин пользователя
+
+            // Сохранение времени отправки
+            photoEntity.setSentTime(new Date()); // Используем объект Date для хранения времени
+            // Сохранение фото в базе данных
+
+            photoRepository.save(photoEntity);
+            SendMessage message = new SendMessage(chatId, "Отчет сохранен.");
+            telegramBot.execute(message);
+
+         } else if (update.hasMessage() && update.getMessage().hasText()) {
 
             if ("PhoneListener".equals(state)) {
                 handleContactInput(chatId, text);
                 userStates.remove(chatId);
-            }
-                 else if ("SendReport".equals(state)) {
-                    addReportInRepository(chatId, text);
-                    userStates.remove(chatId);
+
             } else {
                 switch (text) {
                     case "Выбор приюта":
                         sendShelterChoiceMenu(chatId);
-                        understood = true;
                         break;
                     case "Информация о приюте":
                         informationAboutShelter(chatId);
-                        understood = true;
                         break;
                     case "Инструкция как взять животное из приюта":
                         sendInstruction(chatId);
-                        understood = true;
                         break;
                     case "Позвать волонтера":
                         callVolunteer(chatId);
-                        understood = true;
                         break;
                     case "Информация о приюте для кошек":
                         sendCatShelterInfo(chatId);
-                        understood = true;
                         break;
                     case "Местоположение приюта для кошек":
                         LocationUtil.sendCatShelterLocation(chatId, AnimalType.CAT);
-                        understood = true;
                         break;
                     case "Правила безопасности на территории приюта":
                         safetyEquipment(chatId, text);
-                        understood = true;
                         break;
                     case "Информация о приюте для собак":
                         sendDogShelterInfo(chatId);
-                        understood = true;
                         break;
                     case "Местоположение приюта для собак":
                         LocationUtil.sendDogShelterLocation(chatId, AnimalType.DOG);
-                        understood = true;
                         break;
                     case "Информация по транспортировке питомца":
                         getRecommendationsAnimalTransportation(chatId);
-                        understood = true;
                         break;
                     case "Обустройство дома для питомца с ограниченными возможностями":
                         getRecommendationsHomeImprovementForDisabledPet(chatId);
-                        understood = true;
                         break;
                     case "Запросить связь":
                         writeDownContactPhoneNumber(chatId);
-                        understood = true;
                         break;
                     case "Форма ежедневного отчета":
                         sendDailyReportForm(chatId);
-                        understood = true;
                         break;
                     case "Отправить отчет":
                         sendReport(chatId);
-                        understood = true;
                         break;
                     case "Прислать отчет о питомце":
                         sendPetReport(chatId);
-                        understood = true;
+                        break;
+                    case "Советы кинолога":
+                        getAdviceFromDogHandler(chatId);
+                        break;
+                    case "Причины для отказа":
+                        getReasonsForRefusal(chatId);
                         break;
                     default:
-                        sendMainMenu(chatId);
+                        var count = incorrectCounts.getOrDefault(chatId, 0);
+                        if (count < 2) {
+                            incorrectCounts.put(chatId, count + 1);
+                            writeIncorrectText(chatId);
+                        } else {
+                            writeIncorrectText2(chatId);
                         break;
 
                 }
 
-                if (!understood) {
-                    var count = incorrectCounts.getOrDefault(chatId, 0);
-                    if (count < 2) {
-                        incorrectCounts.put(chatId, count + 1);
-                        writeIncorrectText(chatId);
-                    } else {
-                        writeIncorrectText2(chatId);
+
                     }
                 }
             }
         }
-    }
+
 
     private void sendDailyReportForm(long chatId) {
         String text = "В ежедневный отчет входит следующая информация: \n" +
@@ -192,6 +218,53 @@ public class BotService {
                 "\n" +
                 "Если ты не будешь присылать ежедневный отчет, то по истечении 2 дней волонтеры будут обязаны самолично проверять условия содержания животного. \n" +
                 "Как только период в 30 дней заканчивается, волонтеры принимают решение о том, остается животное у хозяина или нет. Испытательный срок может быть пройден, может быть продлен на срок еще 14 или 30 дней, а может быть не пройден.";
+        SendMessage message = new SendMessage(chatId, text);
+        telegramBot.execute(message);
+    }
+
+    private void getAdviceFromDogHandler(long chatId) {
+        String text = "Cоветы кинолога по первичному общению с собакой можно получить по этой ссылке: \n" +
+                "https://yunavet.ru/useful/sovety-kinologa-chto-neobhodimo-znat-hozjainu-o-svoej-sobake/";
+        SendMessage message = new SendMessage(chatId, text);
+        telegramBot.execute(message);
+    }
+
+    @Scheduled(cron = "0 21 * * * * ") // проверка в 9 вечера
+    public void checkReport() {
+        List<Photo> photoList = photoRepository.findPhotoByDate();
+        if (photoList != null) {
+            photoList.forEach(photo -> {
+                if (photo != null) {
+                    Long chatId = photo.getChatId();
+                    if (chatId != null && !photoRepository.findPhotoToday().stream()
+                            .anyMatch(p -> p.getChatId().equals(chatId))) {
+                        String text1 = "Нужно прислать отчет";
+                        telegramBot.execute(new SendMessage(String.valueOf(chatId), text1));
+                        logger.info("Напоминание об отправке отчетов направлено");
+                    } else {
+                        logger.info("Все отчеты получены или уже отправлено напоминание");
+                    }
+                }
+            });
+        }
+    }
+
+    private void getReasonsForRefusal(long chatId) {
+        String text = "Список причин, почему могут отказать и не дать забрать собаку из приюта: \n" +
+                "1. Отказ обеспечить безопасность питомца на новом месте. \n" +
+                "2. Нестабильные отношения в семье. \n" +
+                "3. Антинаучное мышление. \n" +
+                "4. Наличие дома большого количества животных.\n" +
+                "5. Маленькие дети в семье.\n" +
+                "6. Аллергия.\n" +
+                "7. Животное забирают в подарок кому-то. \n" +
+                "8. Животное забирают в целях использования его рабочих качеств.\n" +
+                "9. Отказ приехать познакомиться с животным.\n" +
+                "10. Претендент — пожилой человек, проживающий один.\n" +
+                "11. Отсутствие регистрации и собственного жилья или его несоответствие нормам приюта.\n" +
+                "12. Без объяснения причин.\n" +
+                "Такое тоже бывает, потому что не всегда удобно сказать человеку о своих подозрениях и сомнениях. \n" +
+                "Простой пример: к будущим хозяевам черных кошек, особенно перед Хеллоуином, присматриваются особенно пристально.";
         SendMessage message = new SendMessage(chatId, text);
         telegramBot.execute(message);
     }
@@ -219,23 +292,9 @@ public class BotService {
         telegramBot.execute(message);
     }
 
-    private void addReportInRepository(Long chatId, String text) {
-        Matcher matcher = ANSWER_PATTERN1.matcher(text);
-        if (matcher.matches()) {
-            var task = new PetReport();
-            task.setAnimalsDiet(matcher.group(1));
-            task.setAnimalHealth(matcher.group(3));
-            task.setAnimalHabits(matcher.group(5));
-            task.setData(LocalDateTime.now());
-            task.setUser(repository.findByChatId(chatId));
-            reportRepository.save(task);
-            SendMessage message = new SendMessage(chatId, "Отчет успешно добавлен");
-            telegramBot.execute(message);
-        } else {
-            SendMessage message = new SendMessage(chatId, "Неверный формат отчета");
-            telegramBot.execute(message);
-        }
-    }
+
+
+
         private void writeDownContactPhoneNumber(long chatId) {
             String text = "Я могу записать Ваши контактные данные и в ближайшее время с Вами свяжется наш волонтер и проконсультируют Вас. " +
                     "Введите номер телефона";
@@ -364,6 +423,17 @@ public class BotService {
                         new String[]{"Местоположение приюта для собак", "Главное меню"}
                 )));
 
+    }
+
+
+    @Override
+    public String getBotUsername() {
+        return null;
+    }
+
+    @Override
+    public String getBotToken() {
+        return null;
     }
 
 }

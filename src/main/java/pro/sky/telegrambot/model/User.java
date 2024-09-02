@@ -1,28 +1,48 @@
 package pro.sky.telegrambot.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.*;
 import java.util.Objects;
 
+@Entity
+@Table(name = "users")
 public class User {
 
-    private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
+    private long userId;
+    @Column(name = "chat_Id")
     private long chatId;
+    @Column(name = "name")
     private String name;
+    @Column(name = "phone")
     private String phone;
+    @Column(name = "login")
     private String login;
+
+    @OneToOne(mappedBy = "user")
+    @JsonIgnore
     private Pet pet;
 
+    public User(long chatId, String name, String phone, String login) {
+        this.chatId = chatId;
+        this.name = name;
+        this.phone = phone;
+        this.login = login;
+    }
 
     public User() {
 
     }
 
-
     public long getId() {
-        return id;
+        return userId;
     }
 
     public void setId(long id) {
-        this.id = id;
+        this.userId = userId;
     }
 
     public long getChatId() {
@@ -57,36 +77,27 @@ public class User {
         this.login = login;
     }
 
-    public Pet getPet() {
-        return pet;
-    }
-
-    public void setPet(Pet pet) {
-        this.pet = pet;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id && chatId == user.chatId && Objects.equals(name, user.name) && Objects.equals(phone, user.phone) && Objects.equals(login, user.login) && Objects.equals(pet, user.pet);
+        return userId == user.userId && chatId == user.chatId && Objects.equals(name, user.name) && Objects.equals(phone, user.phone) && Objects.equals(login, user.login);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, chatId, name, phone, login, pet);
+        return Objects.hash(userId, chatId, name, phone, login);
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
+                "userId=" + userId +
                 ", chatId=" + chatId +
                 ", name='" + name + '\'' +
                 ", phone='" + phone + '\'' +
                 ", login='" + login + '\'' +
-                ", pet=" + pet +
                 '}';
     }
 }
