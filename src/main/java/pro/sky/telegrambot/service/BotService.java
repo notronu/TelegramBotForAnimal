@@ -56,6 +56,7 @@ public class BotService {
         );
         this.volunteerMenuKeyboard = new ReplyKeyboardMarkup(
                 new String[]{"Активен", "Неактивен"},
+                new String[]{"Добавить питомца", "Посмотреть питомцев"},
                 new String[]{"Главное меню"}
         );
         this.chatMenuKeyboard = new ReplyKeyboardMarkup(
@@ -135,6 +136,7 @@ public class BotService {
         telegramBot.execute(new SendMessage(chatId, "Выберите приют:")
                 .replyMarkup(new ReplyKeyboardMarkup(
                         new String[]{"Информация о приюте для кошек", "Информация о приюте для собак"},
+                        new String[]{"Выбрать питомца"},
                         new String[]{"Главное меню"}
                 )));
     }
