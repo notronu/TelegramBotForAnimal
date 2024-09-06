@@ -14,6 +14,7 @@ import pro.sky.telegrambot.service.VolunteerService2;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 @Component
 public class RegisterCommandHandler2 implements CommandHandler2 {
 

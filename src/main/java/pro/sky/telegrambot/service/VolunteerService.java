@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.model.PetSession;
+import pro.sky.telegrambot.model.Volunteer;
 import pro.sky.telegrambot.model.VolunteerSession;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import pro.sky.telegrambot.repository.VolunteerRepository;
 
 /**
  * Сервис для управления волонтерами.
@@ -23,13 +25,15 @@ public class VolunteerService {
     private static final Logger logger = LoggerFactory.getLogger(VolunteerService.class);
 
     private final TelegramBot telegramBot;
+    private final VolunteerRepository volunteerRepository;
     private final String VOLUNTEER_FILE_PATH = "volunteer_chat_id.txt";
     private final Map<Long, VolunteerSession> volunteerSessions = new HashMap<>();
     private static final AtomicInteger petCounter = new AtomicInteger(1);
     private final List<PetSession> petSessions = new ArrayList<>();
 
-    public VolunteerService(TelegramBot telegramBot) {
+    public VolunteerService(TelegramBot telegramBot, VolunteerRepository volunteerRepository) {
         this.telegramBot = telegramBot;
+        this.volunteerRepository = volunteerRepository;
     }
 
     /**
@@ -40,11 +44,28 @@ public class VolunteerService {
         try (FileWriter writer = new FileWriter(VOLUNTEER_FILE_PATH)) {
             writer.write(String.valueOf(chatId));
             volunteerSessions.put(chatId, new VolunteerSession(chatId));
+            saveVolunteer(chatId);
             telegramBot.execute(new SendMessage(chatId, "Вы успешно зарегистрированы как волонтер."));
         } catch (IOException e) {
             logger.error("Error registering volunteer with chatId: " + chatId, e);
             telegramBot.execute(new SendMessage(chatId, "Произошла ошибка при регистрации волонтера."));
         }
+    }
+
+    // Метод для регистрации волонтера
+    public Volunteer saveVolunteer(Long chatId) {
+        if (isVolunteerRegistered(chatId)) {
+            return null;  // Возвращаем null, если волонтер уже зарегистрирован
+        }
+
+        Volunteer volunteer = new Volunteer();
+        volunteer.setChatId(chatId);
+        return volunteerRepository.save(volunteer);
+    }
+
+    // Метод для проверки, зарегистрирован ли волонтер
+    private boolean isVolunteerRegistered(Long chatId) {
+        return volunteerRepository.findByChatId(chatId) != null;
     }
 
     /**

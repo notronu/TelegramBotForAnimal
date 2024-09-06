@@ -3,15 +3,14 @@ package pro.sky.telegrambot.listener;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import java.util.List;
+import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.processor.UpdateProcessor;
 import pro.sky.telegrambot.service.BotService;
-
-import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * Слушатель обновлений от Telegram.
@@ -40,6 +39,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     /**
      * Обрабатывает обновления от Telegram.
+     *
      * @param updates список обновлений
      * @return статус обработки обновлений
      */

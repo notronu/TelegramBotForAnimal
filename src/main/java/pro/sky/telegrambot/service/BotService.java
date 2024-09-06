@@ -56,8 +56,8 @@ public class BotService {
         );
         this.volunteerMenuKeyboard = new ReplyKeyboardMarkup(
                 new String[]{"Активен", "Неактивен"},
-                new String[]{"Добавить питомца", "Посмотреть питомцев"},
-                new String[]{"Главное меню"}
+                new String[]{"Добавить питомца", "Посмотреть питомцев"}
+//                new String[]{"Главное меню"}
         );
         this.chatMenuKeyboard = new ReplyKeyboardMarkup(
                 new String[]{"Завершить беседу с клиентом"}
@@ -80,39 +80,39 @@ public class BotService {
             } else if (chatService.isActiveChat(chatId)) {
                 chatService.routeMessage(chatId, update.message());
             } else {
-                BotCommand.DEFAULT.execute(this, chatId);
+                //BotCommand.DEFAULT.execute(this, chatId);
             }
         }
-        long chatId = update.message().chat().id();
-        String text = update.message().text();
-        PetRegistrationState state = petRegistrationMap.get(chatId);
-
-        if (state != null) {
-            if (state.getStep() == PetRegistrationStep.NAME) {
-                state.setName(text);
-                state.nextStep();
-                telegramBot.execute(new SendMessage(chatId, "Введите породу питомца:"));
-            } else if (state.getStep() == PetRegistrationStep.BREED) {
-                state.setBreed(text);
-                state.nextStep();
-                telegramBot.execute(new SendMessage(chatId, "Загрузите фотографию питомца:"));
-            } else if (state.getStep() == PetRegistrationStep.PHOTO && update.message().photo() != null) {
-                String filePath = savePhoto(update.message().photo());
-                state.setPhotoPath(filePath);
-                int petId = volunteerService.addPet(state.getName(), state.getBreed(), state.getPhotoPath());
-                telegramBot.execute(new SendMessage(chatId, "Питомец зарегистрирован под номером " + petId));
-                petRegistrationMap.remove(chatId);
-            } else {
-                telegramBot.execute(new SendMessage(chatId, "Ожидается фотография. Попробуйте снова."));
-            }
-        } else {
-            BotCommand command = BotCommand.fromString(text);
-            if (command != null) {
-                command.execute(this, chatId);
-            } else {
-                BotCommand.DEFAULT.execute(this, chatId);
-            }
-        }
+//        long chatId = update.message().chat().id();
+//        String text = update.message().text();
+//        PetRegistrationState state = petRegistrationMap.get(chatId);
+//
+//        if (state != null) {
+//            if (state.getStep() == PetRegistrationStep.NAME) {
+//                state.setName(text);
+//                state.nextStep();
+//                telegramBot.execute(new SendMessage(chatId, "Введите породу питомца:"));
+//            } else if (state.getStep() == PetRegistrationStep.BREED) {
+//                state.setBreed(text);
+//                state.nextStep();
+//                telegramBot.execute(new SendMessage(chatId, "Загрузите фотографию питомца:"));
+//            } else if (state.getStep() == PetRegistrationStep.PHOTO && update.message().photo() != null) {
+//                String filePath = savePhoto(update.message().photo());
+//                state.setPhotoPath(filePath);
+//                int petId = volunteerService.addPet(state.getName(), state.getBreed(), state.getPhotoPath());
+//                telegramBot.execute(new SendMessage(chatId, "Питомец зарегистрирован под номером " + petId));
+//                petRegistrationMap.remove(chatId);
+//            } else {
+//                telegramBot.execute(new SendMessage(chatId, "Ожидается фотография. Попробуйте снова."));
+//            }
+//        } else {
+//            BotCommand command = BotCommand.fromString(text);
+//            if (command != null) {
+//                command.execute(this, chatId);
+//            } else {
+//                BotCommand.DEFAULT.execute(this, chatId);
+//            }
+//        }
 
     }
 
@@ -282,7 +282,7 @@ public class BotService {
      */
     public void registerVolunteer(long chatId) {
         volunteerService.registerVolunteer(chatId);
-        sendVolunteerMenu(chatId);
+//        sendVolunteerMenu(chatId);
     }
 
     /**

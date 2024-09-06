@@ -28,6 +28,7 @@ public enum BotCommand {
     VOLUNTEER_ACTIVE("Активен", new VolunteerActiveCommandHandler()),
     VOLUNTEER_INACTIVE("Неактивен", new VolunteerInactiveCommandHandler()),
     //ADD_PET("/add_pet", new AddPetCommandHandler(BotService.getVolunteerService())),
+    GENERAL_MENU("Главное меню", new DefaultCommandHandler()),
     DEFAULT("/start", new DefaultCommandHandler());
 
     private final String command;
