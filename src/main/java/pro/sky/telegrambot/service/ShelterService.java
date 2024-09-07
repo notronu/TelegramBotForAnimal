@@ -19,8 +19,12 @@ public class ShelterService {
         this.shelterRepository = shelterRepository;
     }
 
+    /**
+     * Находит приют по типу животных.
+     * @param type тип животных
+     * @return опционально найденный приют
+     */
     public Optional<Shelter> findShelterByType(AnimalType type) {
         return shelterRepository.findByType(type);
     }
-
 }

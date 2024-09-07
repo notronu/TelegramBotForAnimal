@@ -1,9 +1,9 @@
 package pro.sky.telegrambot.configuration;
 
 import com.pengrad.telegrambot.TelegramBot;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.pengrad.telegrambot.model.DeleteMyCommands;
-import com.pengrad.telegrambot.model.request.Keyboard;
-import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class TelegramBotConfiguration {
 
+    private static final Logger logger = LoggerFactory.getLogger(TelegramBotConfiguration.class);
     @Value("${telegram.bot.token}")
     private String token;
 
@@ -23,7 +24,10 @@ public class TelegramBotConfiguration {
      */
     @Bean
     public TelegramBot telegramBot() {
-        return new TelegramBot(token);
+        logger.info("Creating TelegramBot with token: {}", token);
+        TelegramBot bot = new TelegramBot(token);
+        bot.execute(new DeleteMyCommands());
+        return bot;
     }
 
 }

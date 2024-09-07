@@ -18,7 +18,7 @@ public class User {
     @Column(name = "name")
     private String name;
     @Column(name = "phone")
-    private String phone;
+    private String phoneNumber;
     @Column(name = "login")
     private String login;
 
@@ -26,10 +26,10 @@ public class User {
     @JsonIgnore
     private Pet pet;
 
-    public User(long chatId, String name, String phone, String login) {
+    public User(long chatId, String name, String phoneNumber, String login) {
         this.chatId = chatId;
         this.name = name;
-        this.phone = phone;
+        this.phoneNumber = phoneNumber;
         this.login = login;
     }
 
@@ -61,12 +61,12 @@ public class User {
         this.name = name;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getLogin() {
@@ -82,12 +82,12 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return userId == user.userId && chatId == user.chatId && Objects.equals(name, user.name) && Objects.equals(phone, user.phone) && Objects.equals(login, user.login);
+        return userId == user.userId && chatId == user.chatId && Objects.equals(name, user.name) && Objects.equals(phoneNumber, user.phoneNumber) && Objects.equals(login, user.login);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, chatId, name, phone, login);
+        return Objects.hash(userId, chatId, name, phoneNumber, login);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class User {
                 "userId=" + userId +
                 ", chatId=" + chatId +
                 ", name='" + name + '\'' +
-                ", phone='" + phone + '\'' +
+                ", phone='" + phoneNumber + '\'' +
                 ", login='" + login + '\'' +
                 '}';
     }

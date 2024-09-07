@@ -28,6 +28,9 @@ public class Pet {
     //@Column
     //@Column(name = "shelter")
     private String shelter;
+    //@Column(nullable = false)
+    //@Column(name = "photoFileId")
+    private String photoFileId;
     @Column(name = "user_id", insertable = false, updatable = false)
     private Long userId;
 
@@ -35,6 +38,12 @@ public class Pet {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     @JsonIgnore
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "volunteer_id")
+    private Volunteer volunteer;
+
+
 
     public Pet(long petId, String name, String breed, int age, String food, String shelter, Long userId) {
         this.petId = petId;
@@ -106,17 +115,33 @@ public class Pet {
         this.userId = userId;
     }
 
+    public String getPhotoFileId() {
+        return photoFileId;
+    }
+
+    public void setPhotoFileId(String photoFileId) {
+        this.photoFileId = photoFileId;
+    }
+
+    public Volunteer getVolunteer() {
+        return volunteer;
+    }
+
+    public void setVolunteer(Volunteer volunteer) {
+        this.volunteer = volunteer;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Pet pet = (Pet) o;
-        return petId == pet.petId && age == pet.age && userId == pet.userId && Objects.equals(name, pet.name) && Objects.equals(breed, pet.breed) && Objects.equals(food, pet.food) && Objects.equals(shelter, pet.shelter) && Objects.equals(user, pet.user);
+        return petId == pet.petId && age == pet.age && Objects.equals(name, pet.name) && Objects.equals(breed, pet.breed) && Objects.equals(food, pet.food) && Objects.equals(shelter, pet.shelter) && Objects.equals(photoFileId, pet.photoFileId) && Objects.equals(userId, pet.userId) && Objects.equals(user, pet.user) && Objects.equals(volunteer, pet.volunteer);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(petId, name, breed, age, food, shelter, userId, user);
+        return Objects.hash(petId, name, breed, age, food, shelter, photoFileId, userId, user, volunteer);
     }
 
     @Override
@@ -128,10 +153,14 @@ public class Pet {
                 ", age=" + age +
                 ", food='" + food + '\'' +
                 ", shelter='" + shelter + '\'' +
+                ", photoFileId='" + photoFileId + '\'' +
                 ", userId=" + userId +
                 ", user=" + user +
+                ", volunteer=" + volunteer +
                 '}';
     }
-
 }
+
+
+
 

@@ -10,7 +10,12 @@ public class Shelter {
     private AnimalType type;
 
     // Конструкторы, геттеры и сеттеры
-
+    /**
+     * Создает новый приют с указанным именем, адресом и типом животных.
+     * @param name название приюта
+     * @param address адрес приюта
+     * @param type тип животных в приюте
+     */
     public Shelter(String name, String address, AnimalType type) {
         this.name = name;
         this.address = address;
@@ -40,5 +45,4 @@ public class Shelter {
     public void setType(AnimalType type) {
         this.type = type;
     }
-
 }
