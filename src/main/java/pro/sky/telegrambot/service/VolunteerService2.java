@@ -13,6 +13,7 @@ import pro.sky.telegrambot.repository.PetRepository;
 import pro.sky.telegrambot.repository.ReportRepository;
 import pro.sky.telegrambot.repository.VolunteerRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,6 +24,7 @@ public class VolunteerService2 {
     private final PetRepository petRepository;
     private final ClientRepository clientRepository;
     private final ReportRepository reportRepository;
+
 
     @Autowired
     public VolunteerService2(VolunteerRepository volunteerRepository, PetRepository petRepository, ClientRepository clientRepository, ReportRepository reportRepository) {
@@ -67,6 +69,7 @@ public class VolunteerService2 {
     public PetReport addPetReportToVolunteer(Long chatId, String name, String animalsDiet, String animalHealth, String animalHabit, String photoFileId) {
         Volunteer volunteer = volunteerRepository.findByChatId(chatId);
         if (volunteer == null) {
+            logger.warn("Volunteer with chatId {} not found", chatId);
             return null;
         }
 
@@ -77,7 +80,10 @@ public class VolunteerService2 {
         petReport.setAnimalHabits(animalHabit);
         petReport.setPhotoFileId(photoFileId);
         petReport.setVolunteer(volunteer);
-        return reportRepository.save(petReport);
+        PetReport savedReport = reportRepository.save(petReport);
+        logger.info("Saved pet report with ID {} for volunteer with chatId {}", savedReport.getId(), chatId);
+
+        return savedReport;
 
 
     }
@@ -90,7 +96,16 @@ public class VolunteerService2 {
 
     public List<PetReport> getReportByVolunteer(Long chatId) {
         Volunteer volunteer = volunteerRepository.findByChatId(chatId);
-        return volunteer != null ? volunteer.getPetReports() : List.of();
+        if (volunteer != null) {
+            return volunteer.getPetReports();
+        } else {
+            return List.of();
+        }
+    }
+
+
+    public void deletePetReport(Long id) {
+        reportRepository.deleteById(id);
     }
 
     // Метод для удаления питомца
@@ -139,7 +154,13 @@ public class VolunteerService2 {
         petRepository.save(pet);
     }
 
+    public PetReport getPetReportById(Long reportId) {
+        return reportRepository.findById(reportId).orElse(null);
+    }
+
     public List<Client> getClientsAwaitingReports() {
         return clientRepository.findAllClientsWithPositiveReportCounts(); // Логика фильтрации клиентов, ожидающих отчетов
     }
+
+
 }

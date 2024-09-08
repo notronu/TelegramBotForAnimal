@@ -1,12 +1,14 @@
 package pro.sky.telegrambot.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
 @Table(name = "users")
+@Component
 public class User {
 
     @Id

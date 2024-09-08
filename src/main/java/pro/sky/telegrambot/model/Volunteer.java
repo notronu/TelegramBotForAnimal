@@ -1,6 +1,13 @@
 package pro.sky.telegrambot.model;
 
+
+
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,8 +22,9 @@ public class Volunteer {
     @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pet> pets;
 
-    @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PetReport> petReports;
+    @OneToMany(mappedBy = "volunteer")
+    @Fetch(FetchMode.JOIN)
+    private List<PetReport> petReports = new ArrayList<>();
 
 
 

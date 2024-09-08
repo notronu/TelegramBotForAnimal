@@ -92,12 +92,12 @@ public class PetReportCommandHandler2 implements CommandHandler2 {
         tempPetReport.setAnimalHealth(animalHealth.trim());
 
         telegramBot.execute(new SendMessage(chatId, "Пожалуйста, опишите новые привычки питомца."));
-        userStates.put(chatId, "AWAITING_PET_PHOTO");
+        userStates.put(chatId, "AWAITING_ANIMAL_HABITS");
     }
 
-    private void handlePetHabits(Long chatId, String animalsDiet) {
+    private void handlePetHabits(Long chatId, String animalHabits) {
         PetReport tempPetReport = tempPetReportData.get(chatId);
-        tempPetReport.setAnimalsDiet(animalsDiet.trim());
+        tempPetReport.setAnimalHabits(animalHabits.trim());
 
         telegramBot.execute(new SendMessage(chatId, "Пожалуйста, отправьте фото питомца."));
         userStates.put(chatId, "AWAITING_PET_PHOTO");

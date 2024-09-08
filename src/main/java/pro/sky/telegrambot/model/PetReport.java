@@ -33,10 +33,11 @@ public class PetReport {
     @JoinColumn(name = "volunteer_id")
     private Volunteer volunteer;
 
+    @Enumerated(EnumType.STRING)
+    private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
 
     public PetReport() {
     }
-
 
 
     public String getPhotoFileId() {
@@ -62,6 +63,7 @@ public class PetReport {
     public void setId(long id) {
         this.id = id;
     }
+
 
 
     public String getAnimalsDiet() {
@@ -112,20 +114,25 @@ public class PetReport {
         this.volunteer = volunteer;
     }
 
+    public ApprovalStatus getApprovalStatus() {
+        return approvalStatus;
+    }
 
-
+    public void setApprovalStatus(ApprovalStatus approvalStatus) {
+        this.approvalStatus = approvalStatus;
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PetReport petReport = (PetReport) o;
-        return id == petReport.id && Objects.equals(name, petReport.name) && Objects.equals(animalsDiet, petReport.animalsDiet) && Objects.equals(animalHealth, petReport.animalHealth) && Objects.equals(animalHabits, petReport.animalHabits) && Objects.equals(photoFileId, petReport.photoFileId) && Objects.equals(data, petReport.data) && Objects.equals(user, petReport.user);
+        return id == petReport.id && Objects.equals(name, petReport.name) && Objects.equals(animalsDiet, petReport.animalsDiet) && Objects.equals(animalHealth, petReport.animalHealth) && Objects.equals(animalHabits, petReport.animalHabits) && Objects.equals(photoFileId, petReport.photoFileId) && Objects.equals(data, petReport.data) && Objects.equals(user, petReport.user) && Objects.equals(volunteer, petReport.volunteer) && approvalStatus == petReport.approvalStatus;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, animalsDiet, animalHealth, animalHabits, photoFileId, data, user);
+        return Objects.hash(id, name, animalsDiet, animalHealth, animalHabits, photoFileId, data, user, volunteer, approvalStatus);
     }
 
     @Override
@@ -139,6 +146,8 @@ public class PetReport {
                 ", photoFileId='" + photoFileId + '\'' +
                 ", data=" + data +
                 ", user=" + user +
+                ", volunteer=" + volunteer +
+                ", approvalStatus=" + approvalStatus +
                 '}';
     }
 }

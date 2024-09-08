@@ -15,4 +15,5 @@ public interface ReportRepository extends JpaRepository<PetReport, Long> {
     @Query(value = "select * from pet_report where data >= DATE('now', '-2 days')", nativeQuery = true)
     List<PetReport> getOwnersAfterTwoDaysReport();
 
+
 }
