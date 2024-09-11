@@ -69,7 +69,7 @@ public class BotService {
         this.clientRepository = clientRepository;
         this.mainMenuKeyboard = new ReplyKeyboardMarkup(
                 new String[]{"Выбор приюта", "Инструкция как взять животное из приюта"},
-                new String[]{"Прислать отчет о питомце", "Информация о приюте"},
+                new String[]{"Прислать отчет о питомце"},
                 new String[]{"Позвать волонтера"}
         );
         this.instructionMenuKeyboard = new ReplyKeyboardMarkup(
