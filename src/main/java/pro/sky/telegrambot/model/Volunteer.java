@@ -8,7 +8,9 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Volunteer {
@@ -22,9 +24,10 @@ public class Volunteer {
     @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pet> pets;
 
-    @OneToMany(mappedBy = "volunteer")
+
     @Fetch(FetchMode.JOIN)
-    private List<PetReport> petReports = new ArrayList<>();
+    @ManyToMany(mappedBy = "volunteers")
+    private Set<PetReport> petReports = new HashSet<>();
 
 
 
@@ -62,11 +65,11 @@ public class Volunteer {
         this.pets = pets;
     }
 
-    public List<PetReport> getPetReports() {
+    public Set<PetReport> getPetReports() {
         return petReports;
     }
 
-    public void setPetReports(List<PetReport> petReports) {
+    public void setPetReports(Set<PetReport> petReports) {
         this.petReports = petReports;
     }
 }

@@ -15,6 +15,7 @@ import pro.sky.telegrambot.repository.VolunteerRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class VolunteerService2 {
@@ -67,19 +68,12 @@ public class VolunteerService2 {
     }
 
     public PetReport addPetReportToVolunteer(Long chatId, String name, String animalsDiet, String animalHealth, String animalHabit, String photoFileId) {
-        Volunteer volunteer = volunteerRepository.findByChatId(chatId);
-        if (volunteer == null) {
-            logger.warn("Volunteer with chatId {} not found", chatId);
-            return null;
-        }
-
         PetReport petReport = new PetReport();
         petReport.setName(name);
         petReport.setAnimalsDiet(animalsDiet);
         petReport.setAnimalHealth(animalHealth);
         petReport.setAnimalHabits(animalHabit);
         petReport.setPhotoFileId(photoFileId);
-        petReport.setVolunteer(volunteer);
         PetReport savedReport = reportRepository.save(petReport);
         logger.info("Saved pet report with ID {} for volunteer with chatId {}", savedReport.getId(), chatId);
 
@@ -95,12 +89,8 @@ public class VolunteerService2 {
     }
 
     public List<PetReport> getReportByVolunteer(Long chatId) {
-        Volunteer volunteer = volunteerRepository.findByChatId(chatId);
-        if (volunteer != null) {
-            return volunteer.getPetReports();
-        } else {
-            return List.of();
-        }
+        return null;
+
     }
 
 

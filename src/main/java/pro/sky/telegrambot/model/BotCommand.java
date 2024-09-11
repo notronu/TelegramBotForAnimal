@@ -16,7 +16,7 @@ public enum BotCommand {
     SHELTER_CHOICE("Выбор приюта", new ShelterChoiceCommandHandler()),
     INSTRUCTION("Инструкция как взять животное из приюта", new InstructionCommandHandler()),
     PET_REPORT("Прислать отчет о питомце", new PetReportMenuHandler()),
-    CHECK_PET_REPORT("Отправить отчет", new PetReportCommandHandler()),
+
     CALL_VOLUNTEER("Позвать волонтера", new CallVolunteerCommandHandler()),
     CAT_SHELTER_INFO("Информация о приюте для кошек", new CatShelterInfoCommandHandler()),
     CAT_SHELTER_LOCATION("Местоположение приюта для кошек", new CatShelterLocationCommandHandler()),

@@ -5,8 +5,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 
 @Entity
@@ -29,12 +28,16 @@ public class PetReport {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "volunteer_id")
-    private Volunteer volunteer;
+    @ManyToMany
+    @JoinTable(name = "volunteer_pet_report",
+            joinColumns = @JoinColumn(name = "pet_report_id"),
+            inverseJoinColumns = @JoinColumn(name = "volunteer_id"))
+    private Set<Volunteer> volunteers = new HashSet<>();
+
 
     @Enumerated(EnumType.STRING)
     private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
+
 
     public PetReport() {
     }
@@ -90,13 +93,6 @@ public class PetReport {
         this.animalHabits = animalHabits;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 
     public LocalDateTime getData() {
         return data;
@@ -104,14 +100,6 @@ public class PetReport {
 
     public void setData(LocalDateTime data) {
         this.data = data;
-    }
-
-    public Volunteer getVolunteer() {
-        return volunteer;
-    }
-
-    public void setVolunteer(Volunteer volunteer) {
-        this.volunteer = volunteer;
     }
 
     public ApprovalStatus getApprovalStatus() {
@@ -122,17 +110,33 @@ public class PetReport {
         this.approvalStatus = approvalStatus;
     }
 
+    public Set<Volunteer> getVolunteers() {
+        return volunteers;
+    }
+
+    public void setVolunteers(Set<Volunteer> volunteers) {
+        this.volunteers = volunteers;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PetReport petReport = (PetReport) o;
-        return id == petReport.id && Objects.equals(name, petReport.name) && Objects.equals(animalsDiet, petReport.animalsDiet) && Objects.equals(animalHealth, petReport.animalHealth) && Objects.equals(animalHabits, petReport.animalHabits) && Objects.equals(photoFileId, petReport.photoFileId) && Objects.equals(data, petReport.data) && Objects.equals(user, petReport.user) && Objects.equals(volunteer, petReport.volunteer) && approvalStatus == petReport.approvalStatus;
+        return id == petReport.id && Objects.equals(name, petReport.name) && Objects.equals(animalsDiet, petReport.animalsDiet) && Objects.equals(animalHealth, petReport.animalHealth) && Objects.equals(animalHabits, petReport.animalHabits) && Objects.equals(photoFileId, petReport.photoFileId) && Objects.equals(data, petReport.data) && Objects.equals(user, petReport.user) && Objects.equals(volunteers, petReport.volunteers) && approvalStatus == petReport.approvalStatus;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, animalsDiet, animalHealth, animalHabits, photoFileId, data, user, volunteer, approvalStatus);
+        return Objects.hash(id, name, animalsDiet, animalHealth, animalHabits, photoFileId, data, user, volunteers, approvalStatus);
     }
 
     @Override
@@ -146,7 +150,7 @@ public class PetReport {
                 ", photoFileId='" + photoFileId + '\'' +
                 ", data=" + data +
                 ", user=" + user +
-                ", volunteer=" + volunteer +
+                ", volunteers=" + volunteers +
                 ", approvalStatus=" + approvalStatus +
                 '}';
     }

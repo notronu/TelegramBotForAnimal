@@ -20,6 +20,8 @@ import pro.sky.telegrambot.service.VolunteerService2;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 @Component
 public class ViewReportsCommandHandler2 implements CommandHandler2 {
 
@@ -70,25 +72,25 @@ public class ViewReportsCommandHandler2 implements CommandHandler2 {
 
     private void showReport(Long chatId, int reportIndex) {
         logger.info("showReport: chatId={}, reportIndex={}", chatId, reportIndex);
-        List<PetReport> petReports = volunteerService2.getReportByVolunteer(chatId);
-        logger.info("showReport: petReports.size()={}", petReports.size());
-        logger.debug("showReport: petReports={}", petReports);
+        List<PetReport> allReports = reportRepository.findAll();
+        logger.info("showReport: petReports.size()={}", allReports.size());
+        logger.debug("showReport: petReports={}", allReports);
 
-        if (petReports.isEmpty()) {
+        if (allReports.isEmpty()) {
             telegramBot.execute(new SendMessage(chatId, "Нет отчетов."));
             return;
         }
 
-        if (reportIndex < 0 || reportIndex >= petReports.size()) {
+        if (reportIndex < 0 || reportIndex >= allReports.size()) {
             telegramBot.execute(new SendMessage(chatId, "Вы посмотрели все отчеты."));
             return;
         }
 
-        PetReport petReport = petReports.get(reportIndex);
+        PetReport petReport = allReports.get(reportIndex);
         userCurrentReportIndex.put(chatId, reportIndex);
 
         String reportInfo = String.format("Отчет %d из %d\n\nКличка: %s\nРацион: , %s\nСамочувствие:, %s\nПривычки: %s",
-                reportIndex + 1, petReports.size(), petReport.getName(), petReport.getAnimalsDiet(), petReport.getAnimalHealth(), petReport.getAnimalHabits());
+                reportIndex + 1, allReports.size(), petReport.getName(), petReport.getAnimalsDiet(), petReport.getAnimalHealth(), petReport.getAnimalHabits());
 
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
                 new InlineKeyboardButton("Отчет одобрен").callbackData("approve_report:" + reportIndex),
@@ -111,37 +113,16 @@ public class ViewReportsCommandHandler2 implements CommandHandler2 {
         logger.info("Showing pet index {} to chatId: {}", reportIndex, chatId);
     }
 
-    private void deletePetReport(Long chatId, int reportIndex) {
-        List<PetReport> petReports = volunteerService2.getReportByVolunteer(chatId);
-
-        if (reportIndex < 0 || reportIndex >= petReports.size()) {
-            telegramBot.execute(new SendMessage(chatId, "Невозможно удалить отчет. Неверный индекс."));
-            return;
-        }
-
-        PetReport petReport = petReports.get(reportIndex);
-        volunteerService2.deletePet(petReport.getId());
-
-        telegramBot.execute(new SendMessage(chatId, "Отчет успешно удален."));
-        logger.info("Deleted pet with id {} for chatId: {}", petReport.getId(), chatId);
-
-        // Показываем следующий отчет, если он есть
-        if (petReports.size() > 1) {
-            showReport(chatId, reportIndex);
-        } else {
-            telegramBot.execute(new SendMessage(chatId, "Больше нет отчетов."));
-        }
-    }
 
     private void approveReport(Long chatId, int reportIndex) {
         logger.info("Approving report with index {} for chatId: {}", reportIndex, chatId);
-        List<PetReport> petReports = volunteerService2.getReportByVolunteer(chatId);
-        PetReport petReport = petReports.get(reportIndex);
+        List<PetReport> allReports = reportRepository.findAll();
+        PetReport petReport = allReports.get(reportIndex);
 
         petReport.setApprovalStatus(ApprovalStatus.APPROVED);
         reportRepository.save(petReport);
 
-        petReports.remove(reportIndex);
+        allReports.remove(reportIndex);
         reportRepository.delete(petReport);
 
         Long userId = user.getId(); // Получаем ID пользователя
@@ -151,11 +132,11 @@ public class ViewReportsCommandHandler2 implements CommandHandler2 {
 
     private void disApproveReport(Long chatId, int reportIndex) {
         logger.info("Disapproving report with index {} for chatId: {}", reportIndex, chatId);
-        List<PetReport> petReports = volunteerService2.getReportByVolunteer(chatId);
-        PetReport petReport = petReports.get(reportIndex);
+        List<PetReport> allReports = reportRepository.findAll();
+        PetReport allReport = allReports.get(reportIndex);
 
         petReport.setApprovalStatus(ApprovalStatus.REJECTED);
-        reportRepository.save(petReport);
+        reportRepository.save(allReport);
 
         Long userId = user.getId();
         telegramBot.execute(new SendMessage(userId, "Дорогой усыновитель, мы заметили, что ты заполняешь отчет не так подробно, как необходимо. Пожалуйста, подойди ответственнее к этому занятию. В противном случае волонтеры приюта будут обязаны самолично проверять условия содержания животного"));
